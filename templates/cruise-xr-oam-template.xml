@@ -1,0 +1,65 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ethernet  xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge" when="{($IF_END_TYPE = 'serv-inst')}">
+                    <cfm when="{$EOAM = 'active'}">
+                        <domain>
+                            <name>SES-L1</name>
+                            <level>1</level>
+                            <service when="{ ($SERV_INST != 'None') and ($BD_ID != 'None') and ($VC_ID != '')}">
+                                <name>{$SERVICE_NAME}-{$IF_ID}</name>
+                                <down-meps>
+                                </down-meps>
+                                <continuity-check>
+                                    <interval>
+                                        <value>1s</value>
+                                    </interval>
+                                </continuity-check>
+                            </service>
+                        </domain>
+                    </cfm>
+                </ethernet>
+                <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <Bundle-Ether when="{($IF_SIZE = 'Bundle-Ether')  and ($IF_END_TYPE = 'serv-inst') and ($IF_S_VLAN_ID != '')}">
+                        <id>{$IF_NUM}</id>
+                        <load-interval>30</load-interval>
+                    </Bundle-Ether>
+                    <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <TenGigE>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </TenGigE>
+                    </TenGigE-subinterface>
+                    <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <Bundle-Ether>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </Bundle-Ether>
+                    </Bundle-Ether-subinterface>
+                </interface>
+             </config>
+        </device>
+     </devices>
+</config-template>

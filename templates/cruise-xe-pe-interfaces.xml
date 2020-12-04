@@ -1,0 +1,471 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ethernet xmlns="urn:ios" tags="merge" when="{($IF_END_TYPE = 'serv-inst')}">
+                    <evc>
+                        <name>{$VC_ID}</name>
+                    </evc>
+                </ethernet>
+                <interface xmlns="urn:ios" tags="merge">
+                    <GigabitEthernet when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'port')}">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$IF_PE_IP_ADDR}</address>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                        <service-policy>
+                            <input>{$VRF_NAME}-{$ID_INT}-INGRESS</input>
+                        </service-policy>
+                        <standby tags="merge" when="{($GW_RED = 'HSRP')}">
+                            <standby-list>
+                                <group-number>{$VIP_GROUP}</group-number>
+                                <ip>
+                                    <address>{$VIP_IP_ADDR}</address>
+                                </ip>
+                                <priority>130</priority>
+                            </standby-list>
+                        </standby>
+                        <vrrp tags="merge" when="{($GW_RED = 'VRRP')}">
+                            <id>{$VIP_GROUP}</id>
+                            <priority>{$VIP_PRIORITY}</priority>
+                            <ip>
+                                <address>{$VIP_IP_ADDR}</address>
+                            </ip>
+                        </vrrp>
+                        <vrf>
+                            <forwarding>{$VRF_NAME}</forwarding>
+                        </vrf>
+                    </GigabitEthernet>
+                    <TenGigabitEthernet when="{($IF_SIZE = 'TenGigabitEthernet') and ($IF_END_TYPE = 'port')}">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$IF_PE_IP_ADDR}</address>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                        <service-policy>
+                            <input>{$VRF_NAME}-{$ID_INT}-INGRESS</input>
+                        </service-policy>
+                        <standby tags="merge" when="{($GW_RED = 'HSRP')}">
+                            <standby-list>
+                                <group-number>{$VIP_GROUP}</group-number>
+                                <ip>
+                                    <address>{$VIP_IP_ADDR}</address>
+                                </ip>
+                                <priority>130</priority>
+                            </standby-list>
+                        </standby>
+                        <vrrp tags="merge" when="{($GW_RED = 'VRRP')}">
+                            <id>{$VIP_GROUP}</id>
+                            <priority>{$VIP_PRIORITY}</priority>
+                            <ip>
+                                <address>{$VIP_IP_ADDR}</address>
+                            </ip>
+                        </vrrp>
+                        <vrf>
+                            <forwarding>{$VRF_NAME}</forwarding>
+                        </vrf>
+                    </TenGigabitEthernet>
+                    <BDI when="{ ($IF_END_TYPE = 'serv-inst') and ($IF_SIZE != 'Port-channel') and ($SERV_INST_ID != '') and ($BD_ID != '') and ($IF_PE_IP_ADDR  != '') and ($IF_PE_MASK != '')}">
+                        <name>{$BD_ID}</name>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <vrf>
+                            <forwarding>{$VRF_NAME}</forwarding>
+                        </vrf>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$IF_PE_IP_ADDR}</address>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                        <ethernet when="{$IF_ENCAP = 'qinq'}">
+                            <dot1ad>
+                                <nni/>
+                            </dot1ad>
+                        </ethernet>
+                        <standby tags="merge" when="{($GW_RED = 'HSRP')}">
+                            <standby-list>
+                                <group-number>{$VIP_GROUP}</group-number>
+                                <ip>
+                                    <address>{$VIP_IP_ADDR}</address>
+                                </ip>
+                                <priority>130</priority>
+                            </standby-list>
+                        </standby>
+                        <vrrp tags="merge" when="{($GW_RED = 'VRRP')}">
+                            <id>{$VIP_GROUP}</id>
+                            <priority>{$VIP_PRIORITY}</priority>
+                            <ip>
+                                <address>{$VIP_IP_ADDR}</address>
+                            </ip>
+                        </vrrp>
+                    </BDI>
+                    <BDI when="{($IF_END_TYPE = 'serv-inst') and ($SERV_INST_ID != '') and ($IF_SIZE = 'Port-channel')  and ($BD_ID != '') and ($DEVICE_TYPE = 'ASR-920')}">
+                        <name>{$BD_ID}</name>
+                        <mac-address when="{$BDI_MAC != 'None'}">{$BDI_MAC}</mac-address>
+
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <vrf>
+                            <forwarding>{$VRF_NAME}</forwarding>
+                        </vrf>
+                        <bandwidth>
+                            <kilobits>{$BDI_BW}000</kilobits>
+                        </bandwidth>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$IF_PE_IP_ADDR}</address>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                        <ethernet when="{$IF_ENCAP = 'qinq'}">
+                            <dot1ad>
+                                <nni/>
+                            </dot1ad>
+                        </ethernet>
+                        <standby tags="merge" when="{($GW_RED = 'HSRP')}">
+                            <standby-list>
+                                <group-number>{$VIP_GROUP}</group-number>
+                                <ip>
+                                    <address>{$VIP_IP_ADDR}</address>
+                                </ip>
+                                <priority>130</priority>
+                            </standby-list>
+                        </standby>
+                        <vrrp tags="merge" when="{($GW_RED = 'VRRP')}">
+                            <id>{$VIP_GROUP}</id>
+                            <priority>{$VIP_PRIORITY}</priority>
+                            <ip>
+                                <address>{$VIP_IP_ADDR}</address>
+                            </ip>
+                        </vrrp>
+                    </BDI>
+                    <GigabitEthernet tags="merge"  when="{(($IF_SIZE = 'GigabitEthernet') and ($SERV_INST_ID != '') and ($IF_END_TYPE = 'serv-inst')) and ($IF_ENCAP != 'qinq')  and ($BD_ID != '') }">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <service>
+                            <instance tags="merge">
+                                <id>{$SERV_INST_ID}</id>
+                                <ethernet/>
+                                <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <encapsulation>
+                                    <dot1q>
+                                        <id when="{($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'dot1q-2tags'))}">{$IF_S_VLAN_ID}</id>
+                                        <second-dot1q when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'dot1q-2tags')}">{$IF_C_VLAN_ID}</second-dot1q>
+                                    </dot1q>
+                                </encapsulation>
+                                <encapsulation when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'untagged')}">
+                                    <untagged/>
+                                </encapsulation>
+                                <encapsulation when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'e-default')}">
+                                    <default/>
+                                </encapsulation>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags')) and ($REWRITE = 'pop-1'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>1</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags'))and ($REWRITE = 'pop-2'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>2</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <service-policy>
+                                    <input>
+                                        <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                    </input>
+                                </service-policy>
+                                <bridge-domain>
+                                    <bridge-id>{$BD_ID}</bridge-id>
+                                </bridge-domain>
+                            </instance>
+                        </service>
+                    </GigabitEthernet>
+                    <GigabitEthernet tags="merge"  when="{(($IF_SIZE = 'GigabitEthernet') and ($SERV_INST_ID != '') and ($IF_END_TYPE = 'serv-inst')) and ($IF_ENCAP = 'qinq')  and ($BD_ID != '') }">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <ethernet>
+                            <dot1ad>
+                                <nni/>
+                            </dot1ad>
+                        </ethernet>
+                        <service>
+                            <instance tags="merge">
+                                <id>{$SERV_INST_ID}</id>
+                                <ethernet/>
+                                <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <encapsulation>
+                                    <dot1ad>
+                                        <id>{$IF_S_VLAN_ID}</id>
+                                        <dot1q>{$IF_C_VLAN_ID}</dot1q>
+                                    </dot1ad>
+                                </encapsulation>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags')) and ($REWRITE = 'pop-1'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>1</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags'))and ($REWRITE = 'pop-2'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>2</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <service-policy>
+                                    <input>
+                                        <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                    </input>
+                                </service-policy>
+                                <bridge-domain>
+                                    <bridge-id>{$BD_ID}</bridge-id>
+                                </bridge-domain>
+                            </instance>
+                        </service>
+                    </GigabitEthernet>
+                    <TenGigabitEthernet tags="merge" when="{($IF_SIZE = 'TenGigabitEthernet') and ($SERV_INST_ID != '') and ($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP != 'qinq')}">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <service>
+                            <instance tags="merge">
+                                <id>{$SERV_INST_ID}</id>
+                                <ethernet/>
+                                <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                               <encapsulation>
+                                    <dot1q>
+                                        <id when="{($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'dot1q-2tags'))}">{$IF_S_VLAN_ID}</id>
+                                        <second-dot1q when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'dot1q-2tags')}">{$IF_C_VLAN_ID}</second-dot1q>
+                                    </dot1q>
+                                </encapsulation>
+                                <encapsulation when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'untagged')}">
+                                    <untagged/>
+                                </encapsulation>
+                                <encapsulation when="{($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP = 'e-default')}">
+                                    <default/>
+                                </encapsulation>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags')) and ($REWRITE = 'pop-1'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>1</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <rewrite
+                                        when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags'))and ($REWRITE = 'pop-2'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>2</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <service-policy>
+                                    <input>
+                                        <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                    </input>
+                                </service-policy>
+                                <bridge-domain>
+                                    <bridge-id>{$BD_ID}</bridge-id>
+                                </bridge-domain>
+                            </instance>
+                        </service>
+                    </TenGigabitEthernet>
+                    <TenGigabitEthernet tags="merge"  when="{(($IF_SIZE = 'TenGigabitEthernet') and ($SERV_INST_ID != '') and ($IF_END_TYPE = 'serv-inst')) and ($IF_ENCAP = 'qinq')}">
+                        <name>{$IF_NUM}</name>
+                        <shutdown tags="delete"/>
+                        <ethernet>
+                            <dot1ad>
+                                <nni/>
+                            </dot1ad>
+                        </ethernet>
+                        <service>
+                            <instance tags="merge">
+                                <id>{$SERV_INST_ID}</id>
+                                <ethernet/>
+                                <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <encapsulation>
+                                    <dot1ad>
+                                        <id>{$IF_S_VLAN_ID}</id>
+                                        <dot1q>{$IF_C_VLAN_ID}</dot1q>
+                                    </dot1ad>
+                                </encapsulation>
+                                 <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags')) and ($REWRITE = 'pop-1'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>1</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <rewrite when="{(($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'qinq') or ($IF_ENCAP = 'dot1q-2tags'))and ($REWRITE = 'pop-2'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>2</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <service-policy>
+                                    <input>
+                                        <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                    </input>
+                                </service-policy>
+                                <bridge-domain>
+                                    <bridge-id>{$BD_ID}</bridge-id>
+                                </bridge-domain>
+                            </instance>
+                        </service>
+                    </TenGigabitEthernet>
+                    <Port-channel tags="merge" when="{($IF_SIZE = 'Port-channel') and ($IF_ENCAP = 'untagged')  and ($DEVICE_TYPE = 'ASR-1001')}">
+                        <name>{$IF_NUM}</name>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$IF_PE_IP_ADDR}</address>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                        <service-policy>
+                            <input>{$VRF_NAME}-{$ID_INT}-INGRESS</input>
+                        </service-policy>
+                        <vrf>
+                            <forwarding>{$VRF_NAME}</forwarding>
+                        </vrf>
+                        <vrrp tags="merge" when="{($GW_RED = 'VRRP')}">
+                            <id>{$VIP_GROUP}</id>
+                            <priority>{$VIP_PRIORITY}</priority>
+                            <ip>
+                                <address>{$VIP_IP_ADDR}</address>
+                            </ip>
+                        </vrrp>
+                    </Port-channel>
+                    <Port-channel-subinterface when="{($IF_SIZE = 'Port-channel') and ($IF_ENCAP = 'dot1q')  and ($DEVICE_TYPE = 'ASR-1001')}">
+                        <Port-channel>
+                            <name>{$IF_NUM}.{$IF_S_VLAN_ID}</name>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation when="($IF_ENCAP = 'dot1q')">
+                                <dot1Q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                </dot1Q>
+                            </encapsulation>
+                            <ip>
+                                <address>
+                                    <primary>
+                                        <address>{$IF_PE_IP_ADDR}</address>
+                                        <mask>{$IF_PE_MASK}</mask>
+                                    </primary>
+                                </address>
+                            </ip>
+                            <service-policy>
+                                <input>{$VRF_NAME}-{$ID_INT}-INGRESS</input>
+                            </service-policy>
+                            <vrf>
+                                <forwarding>{$VRF_NAME}</forwarding>
+                            </vrf>
+                            <vrrp tags="merge" when="{($GW_RED = 'VRRP')">
+                                <id>{$VIP_GROUP}</id>
+                                <priority>{$VIP_PRIORITY}</priority>
+                                <ip>
+                                    <address>{$VIP_IP_ADDR}</address>
+                                </ip>
+                            </vrrp>
+                        </Port-channel>
+                    </Port-channel-subinterface>
+                    <Port-channel tags="merge" when="{($IF_SIZE = 'Port-channel') and ($SERV_INST_ID != '') and ($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP != 'qinq')  and ($DEVICE_TYPE = 'ASR-920')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                            <instance>
+                                <id>{$SERV_INST_ID}</id>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <ethernet/>
+                                <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                                <encapsulation when="{($IF_ENCAP = 'dot1q')}">
+                                    <dot1q>
+                                        <id>{$IF_S_VLAN_ID}</id>
+                                    </dot1q>
+                                </encapsulation>
+                                <encapsulation when="{($IF_ENCAP = 'dot1q-2tags')}">
+                                    <dot1q>
+                                        <id>{$IF_S_VLAN_ID}</id>
+                                        <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                    </dot1q>
+                                </encapsulation>
+                                <encapsulation when="{($IF_ENCAP = 'untagged')}">
+                                    <untagged/>
+                                </encapsulation>
+                                <encapsulation when="{($IF_ENCAP = 'e-default')}">
+                                    <default/>
+                                </encapsulation>
+                                <rewrite when="{($REWRITE = 'pop-1') and (($IF_ENCAP = 'dot1q-2tags') or ($IF_ENCAP = 'dot1q'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>1</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <rewrite when="{($REWRITE = 'pop-2') and (($IF_ENCAP = 'dot1q-2tags') or ($IF_ENCAP = 'dot1q'))}">
+                                    <ingress>
+                                        <tag>
+                                            <pop>2</pop>
+                                            <mode>symmetric</mode>
+                                        </tag>
+                                    </ingress>
+                                </rewrite>
+                                <bridge-domain>
+                                    <bridge-id>{$BD_ID}</bridge-id>
+                                </bridge-domain>
+                                <service-policy>
+                                    <input>
+                                        <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                    </input>
+                                </service-policy>
+                            </instance>
+                        </service>
+                        <keepalive>false</keepalive>
+                        <ip>
+                            <no-address>
+                                <address>false</address>
+                            </no-address>
+                        </ip>
+                        <load-interval>30</load-interval>
+                    </Port-channel>
+
+                </interface>
+            </config>
+        </device>
+    </devices>
+</config-template>

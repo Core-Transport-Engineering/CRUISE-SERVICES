@@ -1,0 +1,15 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>SES-CRUISE-SERVICES</name>
+  <package-version>1.0</package-version>
+  <description>SES Cruise Services</description>
+  <ncs-min-version>4.2</ncs-min-version>
+  <required-package>
+    <name>resource-manager</name>
+  </required-package>
+  <component>
+    <name>ses_cruise_services</name>
+    <application>
+      <python-class-name>ses_cruise_services</python-class-name>
+    </application>
+  </component>
+</ncs-package>

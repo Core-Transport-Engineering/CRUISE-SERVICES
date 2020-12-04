@@ -1,0 +1,39 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <route-map xmlns="urn:ios" >
+                    <name>{$RM_NAME}</name>
+                    <sequence>{$RM_SEQ}</sequence>
+                    <operation>{$RM_OPER}</operation>
+                    <match  when="{$PREFIX_LIST = 'enable'}">
+                        <ip>
+                            <address>
+                                <prefix-list>{$PL_NAME}</prefix-list>
+                            </address>
+                        </ip>
+                    </match>
+                    <match  when="{$COMMUNITY_LIST = 'enable'}">
+                        <community>{$COMM_LIST_NAME}</community>
+                    </match>
+                    <set>
+                        <as-path when="{$AS_PATH != ''}">
+                            <prepend>
+                                <as-list>{$AS_PATH}</as-list>
+                            </prepend>
+                        </as-path>
+                        <community when="{$COMMUNITY != ''}">
+                            <community-number  when="{$ADDITIVE = 'true'}">additive</community-number>
+                            <community-number>{$COMMUNITY}</community-number>
+                        </community>
+                        <local-preference when="{$LOCAL_PREF != ''}">
+                            <value>{$LOCAL_PREF}</value>
+                        </local-preference>
+                        <metric when="{$METRIC != ''}">{$METRIC}</metric>
+                    </set>
+                </route-map>
+            </config>
+        </device>
+    </devices>
+</config-template>

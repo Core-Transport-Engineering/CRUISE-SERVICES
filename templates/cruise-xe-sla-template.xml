@@ -1,0 +1,65 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device when="{($IP_SLA = 'enable')}">
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ip xmlns="urn:ios">
+                    <sla when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                        <ip-sla-list>
+                            <id>{$SLA_ID_CPE_RTT}</id>
+                            <ethernet>
+                                <y1731>
+                                    <delay>
+                                        <name>DMM</name>
+                                        <domain>SES-L1</domain>
+                                        <evc>{$VC_ID}</evc>
+                                        <mpid>{$CPE_MEP_ID}</mpid>
+                                        <cos>7</cos>
+                                        <source>
+                                            <mpid>{$PE_MEP_ID}</mpid>
+                                        </source>
+                                    </delay>
+                                </y1731>
+                            </ethernet>
+                            <owner>{$SERVICE_NAME}-RTT-{$CPE_MEP_ID}</owner>
+                        </ip-sla-list>
+                        <schedule>
+                            <operation-number>{$SLA_ID_CPE_RTT}</operation-number>
+                            <life>forever</life>
+                            <start-time>
+                                <now/>
+                            </start-time>
+                        </schedule>
+                    </sla>
+                    <sla when="{($SLA_ID_CPE_SLM != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                        <ip-sla-list>
+                            <id>{$SLA_ID_CPE_SLM}</id>
+                            <ethernet>
+                                <y1731>
+                                    <loss>
+                                        <name>SLM</name>
+                                        <domain>SES-L1</domain>
+                                        <evc>{$VC_ID}</evc>
+                                        <mpid>{$CPE_MEP_ID}</mpid>
+                                        <cos>7</cos>
+                                        <source>
+                                            <mpid>{$PE_MEP_ID}</mpid>
+                                        </source>
+                                    </loss>
+                                </y1731>
+                            </ethernet>
+                            <owner>{$SERVICE_NAME}-SLM-{$CPE_MEP_ID}</owner>
+                        </ip-sla-list>
+                        <schedule>
+                            <operation-number>{$SLA_ID_CPE_SLM}</operation-number>
+                            <life>forever</life>
+                            <start-time>
+                                <now/>
+                            </start-time>
+                        </schedule>
+                    </sla>
+                </ip>
+             </config>
+        </device>
+     </devices>
+</config-template>

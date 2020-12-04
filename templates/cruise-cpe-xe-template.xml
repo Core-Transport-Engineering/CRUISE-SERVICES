@@ -1,0 +1,248 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device when="{($CPE_DEVICE != '')}">
+            <name>{$CPE_DEVICE}</name>
+            <config tags="merge">
+                <ethernet xmlns="urn:ios" tags="merge">
+                    <evc when="{$VC_ID != ''}">
+                        <name>{$VC_ID}</name>
+                    </evc>
+                    <cfm when="{$EOAM = 'active'}">
+                        <ieee/>
+                        <global/>
+                        <domain when="{$CPE_CFM = 'active'}">
+                            <name>SES-L1</name>
+                            <level>1</level>
+                            <service when="{($SERV_INST != '') and ($BD_ID != '') and ($VC_ID != '')}">
+                                <csi-id>{$SERVICE_NAME}-{$IF_ID}</csi-id>
+                                <evc>{$VC_ID}</evc>
+                                <vlan>{$BD_ID}</vlan>
+                                <direction>down</direction>
+                                <continuity-check>
+                                    <interval>1s</interval>
+                                </continuity-check>
+                            </service>
+                        </domain>
+                    </cfm>
+                </ethernet>
+<!--                <ip xmlns="urn:ios">-->
+<!--                    <sla when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != '')}">-->
+<!--                        <ip-sla-list>-->
+<!--                            <id>{$SLA_ID_CPE_RTT}</id>-->
+<!--                            <ethernet>-->
+<!--                                <y1731>-->
+<!--                                    <delay>-->
+<!--                                        <name>DMM</name>-->
+<!--                                        <domain>SES-L1</domain>-->
+<!--                                        <evc>{$VC_ID}</evc>-->
+<!--                                        <mpid>{$CPE_MEP_ID}</mpid>-->
+<!--                                        <cos>7</cos>-->
+<!--                                        <source>-->
+<!--                                            <mpid>{$PE_MEP_ID}</mpid>-->
+<!--                                        </source>-->
+<!--                                    </delay>-->
+<!--                                </y1731>-->
+<!--                            </ethernet>-->
+<!--                            <owner>{$SERVICE_NAME}-RTT-{$CPE_MEP_ID}-{$CPE_ROUTER}</owner>-->
+<!--                        </ip-sla-list>-->
+<!--                        <schedule>-->
+<!--                            <operation-number>{$SLA_ID_CPE_RTT}</operation-number>-->
+<!--                            <life>forever</life>-->
+<!--                            <start-time>-->
+<!--                                <now/>-->
+<!--                            </start-time>-->
+<!--                        </schedule>-->
+<!--                    </sla>-->
+<!--                    <sla when="{($SLA_ID_CPE_SLM != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != '')}">-->
+<!--                        <ip-sla-list>-->
+<!--                            <id>{$SLA_ID_CPE_SLM}</id>-->
+<!--                            <ethernet>-->
+<!--                                <y1731>-->
+<!--                                    <loss>-->
+<!--                                        <name>SLM</name>-->
+<!--                                        <domain>SES-L1</domain>-->
+<!--                                        <evc>{$VC_ID}</evc>-->
+<!--                                        <mpid>{$CPE_MEP_ID}</mpid>-->
+<!--                                        <cos>7</cos>-->
+<!--                                        <source>-->
+<!--                                            <mpid>{$PE_MEP_ID}</mpid>-->
+<!--                                        </source>-->
+<!--                                    </loss>-->
+<!--                                </y1731>-->
+<!--                            </ethernet>-->
+<!--                            <owner>{$SERVICE_NAME}-SLM-{$CPE_MEP_ID}-{$CPE_ROUTER}</owner>-->
+<!--                        </ip-sla-list>-->
+<!--                        <schedule>-->
+<!--                            <operation-number>{$SLA_ID_CPE_SLM}</operation-number>-->
+<!--                            <life>forever</life>-->
+<!--                            <start-time>-->
+<!--                                <now/>-->
+<!--                            </start-time>-->
+<!--                        </schedule>-->
+<!--                    </sla>-->
+<!--                </ip>-->
+                <interface xmlns="urn:ios" tags="merge">
+                    <Port-channel tags="merge" when="{($IF_SIZE = 'PortChannel') and ($VC_ID != '') and ($DEVICE_TYPE = 'ASR-920')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <ethernet/>
+                            <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                </dot1q>
+                            </encapsulation>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q-2tags')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-1')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>1</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-2')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>2</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <cfm when="{($EOAM = 'active') and ($SERV_INST != '') and ($CPE_MEP_ID != '' ) and ($CPE_MEP_ID != '') }">
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$CPE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                            <bridge-domain when="{$BD_ID != ''}">
+                                <bridge-id>{$BD_ID}</bridge-id>
+                            </bridge-domain>
+                        </instance>
+                        </service>
+                    </Port-channel>
+                    <GigabitEthernet tags="merge" when="{($IF_SIZE = 'GigabitEthernet') and ($DEVICE_TYPE = 'ASR-920')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <ethernet/>
+                            <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                </dot1q>
+                            </encapsulation>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q-2tags')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-1')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>1</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-2')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>2</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <cfm when="{($EOAM = 'active') and ($SERV_INST != '') and ($CPE_MEP_ID != '' ) and ($CPE_MEP_ID != '') }">
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$CPE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                            <bridge-domain when="{$BD_ID != ''}">
+                                <bridge-id>{$BD_ID}</bridge-id>
+                            </bridge-domain>
+                        </instance>
+                        </service>
+                    </GigabitEthernet>
+                    <TenGigabitEthernet tags="merge" when="{($IF_SIZE = 'TenGigabitEthernet')  and ($DEVICE_TYPE = 'ASR-920')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <ethernet/>
+                            <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                </dot1q>
+                            </encapsulation>
+                            <encapsulation when="{($IF_ENCAP = 'dot1q-2tags')}">
+                                <dot1q>
+                                    <id>{$IF_S_VLAN_ID}</id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-1')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>1</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <rewrite
+                                    when="{($REWRITE = 'pop-2')}">
+                                <ingress>
+                                    <tag>
+                                        <pop>2</pop>
+                                        <mode>symmetric</mode>
+                                    </tag>
+                                </ingress>
+                            </rewrite>
+                            <cfm when="{($EOAM = 'active') and ($SERV_INST != '') and ($CPE_MEP_ID != '' ) and ($CPE_MEP_ID != '') }">
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$CPE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                            <bridge-domain when="{$BD_ID != ''}">
+                                <bridge-id>{$BD_ID}</bridge-id>
+                            </bridge-domain>
+                        </instance>
+                        </service>
+                    </TenGigabitEthernet>
+                    <BDI when="{ ($BD_ID != '') and ($CPE_IP_ADDR  != '') and ($CPE_MASK != '')}">
+                        <name>{$BD_ID}</name>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <ip>
+                            <address>
+                                <primary>
+                                    <address>{$CPE_IP_ADDR}</address>
+                                    <mask>{$CPE_MASK}</mask>
+                                </primary>
+                            </address>
+                        </ip>
+                    </BDI>
+                </interface>
+             </config>
+        </device>
+     </devices>
+</config-template>

@@ -1,0 +1,15 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+              <prefix-set xmlns="http://tail-f.com/ned/cisco-ios-xr" when="{$PREFIX_LIST = 'enable'}">
+              <name>{$PL_NAME}</name>
+              <set>
+                <value>{$PREFIX} le {$LENGHT}</value>
+              </set>
+            </prefix-set>
+             </config>
+        </device>
+    </devices>
+</config-template>

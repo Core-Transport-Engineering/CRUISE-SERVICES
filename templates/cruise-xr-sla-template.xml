@@ -1,0 +1,145 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device when="{($IP_SLA = 'enable') and ($EOAM = 'active')}">
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ethernet  xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge" when="{($IF_END_TYPE = 'serv-inst')}">
+                    <sla>
+                        <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                            <name>{$SERVICE_NAME}-RTT-{$CPE_MEP_ID}</name>
+                            <type>cfm-delay-measurement</type>
+                            <probe>
+                                <send>
+                                    <type>burst</type>
+                                    <every>5</every>
+                                    <every-time>seconds</every-time>
+                                    <packet>
+                                        <count>5</count>
+                                        <interval>1</interval>
+                                        <seconds/>
+                                    </packet>
+                                </send>
+                            </probe>
+                            <schedule>
+                                <every>
+                                    <number>1</number>
+                                    <every-time>minutes</every-time>
+                                    <for>40</for>
+                                    <for-time>seconds</for-time>
+                                </every>
+                            </schedule>
+                            <statistics>
+                                <measure>
+                                    <id>round-trip-delay</id>
+                                    <buckets>
+                                        <size>
+                                            <number>1</number>
+                                            <probes/>
+                                        </size>
+                                    </buckets>
+                                </measure>
+                            </statistics>
+                        </profile>
+                        <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                            <name>{$SERVICE_NAME}-SLM-{$CPE_MEP_ID}</name>
+                            <type>cfm-synthetic-loss-measurement</type>
+                            <probe>
+                                <send>
+                                    <type>packet</type>
+                                    <every>1</every>
+                                    <every-time>seconds</every-time>
+                                </send>
+                            </probe>
+                            <schedule>
+                                <every>
+                                    <number>3</number>
+                                    <every-time>minutes</every-time>
+                                    <for>120</for>
+                                    <for-time>seconds</for-time>
+                                    <for-time>seconds</for-time>
+                                </every>
+                            </schedule>
+                            <statistics>
+                                <measure>
+                                    <id>one-way-loss-sd</id>
+                                    <buckets>
+                                        <size>
+                                            <number>1</number>
+                                            <probes/>
+                                        </size>
+                                    </buckets>
+                                </measure>
+                            </statistics>
+                        </profile>
+                    </sla>
+                </ethernet>
+                <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <Bundle-Ether when="{($IF_SIZE = 'Bundle-Ether')  and ($IF_END_TYPE = 'serv-inst') and ($IF_S_VLAN_ID != '')}">
+                        <id>{$IF_NUM}</id>
+                        <load-interval>30</load-interval>
+                    </Bundle-Ether>
+                    <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <TenGigE>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($SERV_INST != '') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain when="{$CPE_CFM = 'active'}">
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                            <sla>
+                                                <operation>
+                                                    <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                                        <name>{$SERVICE_NAME}-RTT-{$CPE_MEP_ID}</name>
+                                                        <mep-id>{$CPE_MEP_ID}</mep-id>
+                                                        <target/>
+                                                    </profile>
+                                                    <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                                        <name>{$SERVICE_NAME}-SLM-{$CPE_MEP_ID}</name>
+                                                        <mep-id>{$CPE_MEP_ID}</mep-id>
+                                                        <target/>
+                                                    </profile>
+                                                </operation>
+                                            </sla>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </TenGigE>
+                    </TenGigE-subinterface>
+                    <Bundle-Ether-subinterface  when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <Bundle-Ether>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($SERV_INST != '') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain when="{$CPE_CFM = 'active'}">
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                            <sla>
+                                                <operation>
+                                                    <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                                        <name>{$SERVICE_NAME}-RTT-{$CPE_MEP_ID}</name>
+                                                        <mep-id>{$CPE_MEP_ID}</mep-id>
+                                                        <target/>
+                                                    </profile>
+                                                    <profile when="{($SLA_ID_CPE_RTT != 'None') and ($CPE_CFM = 'active') and ($CPE_MEP_ID != 'None') and ($PE_MEP_ID != 'None')}">
+                                                        <name>{$SERVICE_NAME}-SLM-{$CPE_MEP_ID}</name>
+                                                        <mep-id>{$CPE_MEP_ID}</mep-id>
+                                                        <target/>
+                                                    </profile>
+                                                </operation>
+                                            </sla>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </Bundle-Ether>
+                    </Bundle-Ether-subinterface>
+                </interface>
+             </config>
+        </device>
+     </devices>
+</config-template>

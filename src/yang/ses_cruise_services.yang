@@ -1,0 +1,1160 @@
+/*
+ * SES-CRUISE-SERVICES Yang model.
+ */
+module ses_cruise_services {
+
+  namespace "http://example.com/ses_cruise_services";
+
+  prefix CRUISE-SERVICES;
+
+  import ietf-yang-types { prefix yang; }
+  import ietf-inet-types { prefix inet; }
+  import tailf-common { prefix tailf; }
+  import tailf-ncs { prefix ncs; }
+  import tailf-ned-cisco-ios { prefix ios; }
+  import tailf-ned-cisco-ios-xr { prefix cisco-ios-xr; }
+  import junos { prefix junos; }
+
+  import resource-allocator {
+    prefix ralloc;
+  }
+
+  import id-allocator {
+    prefix idalloc;
+  }
+
+  contact remus.grobei@ses.com;
+  description
+    "SES CRUISE SERVICES";
+
+  revision 2020-10-13 {
+    description
+        "Production 2.2";
+  }
+
+  augment /ncs:services {
+
+  tailf:action CRUISE-SERVICES-SYNC-ALL {
+      tailf:actionpoint CRUISE-SERVICES-SYNC-ALL-action;
+      output {
+        leaf result {
+          type string;
+        }
+      }
+  }
+
+  list CRUISE-SERVICES {
+    key "service-type name";
+    unique "name";
+    leaf name {
+      tailf:info "[Source ID (3 CHAR FIX)]-[Service Name (3-5 CHAR CAP)]-[Service Name Addition (3-5 CHAR CAP)]-[Path (01-02)] - prod only";
+      type string;
+    }
+
+    uses ncs:service-data;
+    ncs:servicepoint "ses_cruise_services-servicepoint";
+
+    leaf service-type {
+      description "Service type" ;
+      type enumeration {
+        enum L3VPN;
+      }
+    }
+
+    leaf service-identifier {
+      tailf:info "Mandatory: 6 digits, will be used for BSS integration, use TN when available";
+      type string {
+        length "min..45";
+        pattern "[ -~]+";
+      }
+      mandatory true;
+    }
+
+    leaf allocated-vpn-id {
+        type string;
+        config false;
+        tailf:cdb-oper {
+          tailf:persistent true;
+        }
+    }
+
+    leaf interfaces-list {
+        type string;
+        config false;
+        tailf:cdb-oper {
+          tailf:persistent true;
+        }
+    }
+
+    leaf provisioned {
+      type boolean;
+      default false;
+      config false;
+      tailf:cdb-oper {
+        tailf:persistent true;
+      }
+    }
+
+    leaf zenoss-provisioned {
+        type boolean;
+        default false;
+        config false;
+        tailf:cdb-oper {
+          tailf:persistent true;
+        }
+    }
+
+    leaf cpe-list {
+        type boolean;
+        default false;
+        config false;
+        tailf:cdb-oper {
+          tailf:persistent true;
+        }
+    }
+
+    leaf zenoss-device {
+      description "ZenOSS Server" ;
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+        }
+        must "(starts-with(deref(current())/../ncs:name,'zen'))";
+        mandatory true;
+    }
+
+    leaf ethernet-oam {
+      tailf:info "When enable, ethernet OAM will be configured";
+      type enumeration {
+        enum active;
+        enum disabled;
+        }
+      default active;
+    }
+
+    leaf service-responsibility {
+      tailf:info "Used for grant access for Operations Groups";
+      type enumeration {
+        enum Core-Transport { value 1; }
+        enum Services-Implementation  { value 2; }
+        enum Distribution-Network  { value 3; }
+        enum General { value 10; }
+        }
+      default General;
+    }
+
+    leaf service-types {
+      tailf:info "Used for service type reporting";
+      type enumeration {
+        enum Cruise { value 1; }
+        enum Video  { value 2; }
+        enum Government  { value 3; }
+        enum Fix-data  { value 4; }
+        enum General { value 10; }
+        }
+      default General;
+    }
+
+    container ethernet-sla {
+      when "(../ethernet-oam = 'active')";
+      choice ethernet-sla-type {
+        case enable {
+          leaf RTT {
+            tailf:info "Round-trip time";
+            type enumeration {
+              enum enable;
+              enum disable;
+              }
+              default "disable";
+          }
+
+          leaf SLM {
+            tailf:info "Syntetic loss monitoring";
+            type enumeration {
+              enum enable;
+              enum disable;
+              }
+              default "disable";
+          }
+        }
+        case disable {
+          leaf no-sla-monitoring {
+            tailf:info "No SLA monitoring will be configured";
+            type boolean;
+            default true;
+          }
+        }
+        default "disable";
+      }
+    }
+
+    grouping cpe-interface-values {
+      leaf encapsulation {
+          tailf:info "Encapsulation type for CPE interface";
+          when "(../../../../connected-cpe = 'true') and (../../../../cpe-device-in-nso = 'true')";
+          type enumeration {
+            enum dot1q;
+            enum dot1q-2tags;
+          }
+      }
+
+      leaf s-vlan-id {
+        tailf:info "Provider CPE VLAN ID, unique per interface; multiple S-VLANs allowed separated by comma";
+        when "((../../../../connected-cpe = 'true') and (../../../../cpe-device-in-nso = 'true') and ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags')))";
+        type int32 {
+          range "1..4094";
+        }
+      }
+
+      leaf-list c-vlan-id {
+          tailf:info "Manually requested CPE C-VLAN IDs";
+          when "((../../../../connected-cpe = 'true') and (../../../../cpe-device-in-nso = 'true') and (../encapsulation = 'dot1q-2tags'))";
+          type int32 {
+            range "1..4094";
+          }
+          max-elements 1;
+      }
+
+      leaf rewrite {
+         tailf:info "Rewrite operation modes";
+         when "((../../../../connected-cpe = 'true') and (../../../../cpe-device-in-nso = 'true') and  ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags'))) ";
+         type enumeration {
+           enum pop-1;
+           enum pop-2;
+           enum no-rewrite;
+          }
+         default pop-1;
+       }
+
+       leaf interface-description {
+        tailf:info "Custom description for the service, will be added on the subinterface and service instance part of the service name";
+        when "(../../../../connected-cpe = 'true') and (../../../../cpe-device-in-nso = 'true')";
+        type string;
+        mandatory true;
+       }
+    }
+
+    grouping pe-ce-routing {
+      choice routing {
+        case static {
+          container static {
+            list  customer-routes {
+              key "customer-prefix customer-prefix-mask customer-prefix-nh";
+              leaf customer-prefix {
+                type inet:ip-address;
+              }
+
+              leaf customer-prefix-mask {
+                type string {
+                 pattern "(255)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)";
+                }
+              }
+              leaf customer-prefix-nh {
+                type inet:ip-address;
+              }
+            }
+          }
+        }
+        case e-bgp {
+          container e-bgp {
+            list bgp-neighbors {
+                key  "neighbor-ip ce-as-no";
+                leaf neighbor-ip {
+                  type inet:ip-address;
+                }
+                leaf ce-as-no {
+                  type string;
+                }
+                leaf ce-as-md5 {
+                  type string;
+                }
+                leaf ce-keepalive {
+                  type string;
+                }
+                leaf ce-hold {
+                  type string;
+                }
+                leaf internal-vpn-client {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+                leaf next-hop-self {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf route-reflector-client {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf as-override {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf allow-as-in {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf max-prefix {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf default-originate {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf dmzlink-bw {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf enable-bgp-route-map-in {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                leaf enable-bgp-route-map-out {
+                  type enumeration{
+                    enum disable;
+                    enum enable;
+                  }
+                  default "disable";
+                }
+
+                container bgp-route-map-in {
+                  when "(../enable-bgp-route-map-in = 'enable')";
+                  uses configure-route-map;
+                }
+
+                container bgp-route-map-out {
+                  when "(../enable-bgp-route-map-out = 'enable')";
+                  uses configure-route-map;
+                }
+
+              }
+            }
+        }
+        default "static";
+      }
+    }
+
+    grouping configure-route-map {
+
+      grouping prefix-list-grouping {
+        list prefix-list {
+          ordered-by user;
+          key "prefix-list-seq";
+
+          leaf prefix-list-seq {
+            description "Sequence number";
+            type uint32;
+          }
+
+          leaf operation {
+           type enumeration {
+             enum deny;
+             enum permit;
+           }
+           default permit;
+          }
+
+          leaf ip-network {
+            type inet:ipv4-address;
+          }
+
+          leaf ip-mask {
+            type enumeration {
+              enum /0;
+              enum /16;
+              enum /17;
+              enum /18;
+              enum /19;
+              enum /20;
+              enum /21;
+              enum /22;
+              enum /23;
+              enum /24;
+              enum /25;
+              enum /26;
+              enum /27;
+              enum /28;
+              enum /29;
+              enum /30;
+              enum /31;
+              enum /32;
+            }
+            default "/24";
+          }
+
+          leaf lenght {
+            type enumeration {
+              enum 1;
+              enum 16;
+              enum 17;
+              enum 18;
+              enum 19;
+              enum 20;
+              enum 21;
+              enum 22;
+              enum 23;
+              enum 24;
+              enum 25;
+              enum 26;
+              enum 27;
+              enum 28;
+              enum 29;
+              enum 30;
+              enum 31;
+              enum 32;
+            }
+            default "32";
+          }
+        }
+      }
+
+      grouping community-list-grouping {
+        list community-list {
+          ordered-by user;
+          key "community-list-seq";
+
+          leaf community-list-seq {
+            description "Sequence number";
+            type uint32;
+          }
+
+          leaf operation {
+           type enumeration {
+             enum deny;
+             enum permit;
+           }
+           default permit;
+          }
+
+          leaf community {
+            type string;
+
+          }
+
+        }
+      }
+
+      grouping match-statements-grouping {
+        leaf match-options {
+          type enumeration {
+            enum prefix-list;
+            enum community-list;
+          }
+        }
+
+        container match-prefix-list {
+          when "(../match-options = 'prefix-list' )";
+          container prefix-list {
+             uses prefix-list-grouping;
+           }
+        }
+        container match-community-list {
+          when "(../match-options = 'community-list')";
+          container community-list {
+             uses community-list-grouping;
+           }
+        }
+
+      }
+
+      grouping set-statements-grouping {
+        leaf set-options {
+         type enumeration {
+           enum as-path;
+           enum community;
+           enum local-preference;
+           enum metric;
+
+         }
+        }
+
+        container set-as-path {
+          when "(../set-options = 'as-path' )";
+          list as-path {
+            ordered-by user;
+            key "as-path-seq";
+
+            leaf as-path-seq {
+              description "Sequence number";
+              type uint32;
+            }
+
+            leaf prepend {
+              type string;
+            }
+          }
+        }
+
+        container set-community {
+          when "( ../set-options = 'community' )";
+           leaf-list community {
+             type string;
+             }
+
+           leaf additive {
+             type enumeration {
+               enum true;
+               enum false;
+             }
+             default false;
+           }
+        }
+
+        leaf set-local-preference {
+          when "( ../set-options = 'local-preference' )";
+          type uint32 {
+           range "0..4294967295";
+          }
+        }
+
+        leaf set-metric {
+          when "( ../set-options = 'metric' )";
+          type uint32 {
+            range "0..4294967295";
+          }
+        }
+      }
+
+      container route-map-bgp {
+
+         list route-map-seq {
+            ordered-by user;
+            key "route-map-seq";
+
+            leaf route-map-seq {
+              description "Sequence number";
+              type uint32;
+            }
+
+            leaf operation {
+             type enumeration {
+               enum deny;
+               enum permit;
+             }
+             default permit;
+            }
+
+            container match {
+              list match {
+                ordered-by user;
+                key "match-seq";
+                leaf match-seq {
+                  type uint32;
+                }
+                uses match-statements-grouping;
+              }
+            }
+
+            container set {
+              list set {
+                ordered-by user;
+                key "set-seq";
+                leaf set-seq {
+                  type uint32;
+                }
+                uses set-statements-grouping;
+              }
+            }
+
+         }
+      }
+    }
+
+    list endpoint {
+      must "(id and access-pe)" {
+        error-message "ID and access-pe must be set";
+      }
+      ordered-by user;
+      key "id";
+
+      leaf id {
+        tailf:info "Router endpoint identifier: number 1-10";
+       	type uint32 {
+          range "1..256";
+	       }
+      }
+
+      leaf access-pe {
+        tailf:info "Network device: DPE only";
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+        must "(starts-with(deref(current())/../ncs:platform/ncs:name,'ios-xe')) or (starts-with(deref(current())/../ncs:platform/ncs:name,'ios-xr')) or (starts-with(deref(current())/../ncs:platform/ncs:name,'junos'))";
+      	mandatory true;
+      }
+
+
+      list pe-interfaces {
+	      key "id_int";
+        unique "id_int";
+        min-elements 1;
+        when "../access-pe != 'None'";
+
+        leaf id_int {
+          tailf:info "Just a number used as index";
+          type uint8 {
+            range "1..24";
+          }
+        }
+
+
+        leaf if-type {
+          tailf:info "Physical interface: GigabitEthernet or TenGigabitEthernet";
+           type enumeration {
+             enum None;
+             enum Physical;
+             enum Port-channel;
+            }
+            default None;
+        }
+
+        leaf if-size {
+          tailf:info "Physical interface: GigabitEthernet or TenGigabitEthernet";
+          when "(../if-type != 'None')";
+          type enumeration {
+             enum GigabitEthernet;
+             enum TenGigabitEthernet;
+             enum Port-channel;
+            }
+            mandatory true;
+        }
+
+        leaf if-num-ge {
+          when "(../if-type != 'None') and (../if-type = 'Physical') and (../if-size = 'GigabitEthernet') and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios')";
+          type leafref {
+           path "deref(../../access-pe)/../ncs:config/ios:interface/ios:GigabitEthernet/ios:name";
+          }
+        }
+
+        leaf if-num-ge-xr {
+          when "(../if-type != 'None') and (../if-type = 'Physical') and (../if-size = 'GigabitEthernet') and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='cisco-ios-xr-id:cisco-ios-xr')";
+          type leafref {
+            path "/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]"+
+                  "/ncs:config/cisco-ios-xr:interface/cisco-ios-xr:GigabitEthernet/"+
+                  "cisco-ios-xr:id";
+          }
+        }
+
+        leaf if-num-tenge {
+          when "(../if-type != 'None') and (../if-type = 'Physical') and (../if-size = 'TenGigabitEthernet') and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios')";
+          type leafref {
+            path "deref(../../access-pe)/../ncs:config/ios:interface/ios:TenGigabitEthernet/ios:name";
+          }
+        }
+
+        leaf if-num-tenge-xr {
+          when "(../if-type != 'None') and (../if-type = 'Physical') and (../if-size = 'TenGigabitEthernet') and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='cisco-ios-xr-id:cisco-ios-xr')";
+          type leafref {
+            path "/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]"+
+                  "/ncs:config/cisco-ios-xr:interface/cisco-ios-xr:TenGigE/"+
+                  "cisco-ios-xr:id";
+          }
+        }
+
+        leaf if-num-po {
+          when "((../if-type = 'Port-channel') and (../if-size = 'Port-channel')) and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios')";
+          type leafref {
+            path "deref(../../access-pe)/../ncs:config/ios:interface/ios:Port-channel/ios:name";
+          }
+        }
+
+        leaf if-num-po-xr {
+          when "((../if-type = 'Port-channel') and (../if-size = 'Port-channel')) and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='cisco-ios-xr-id:cisco-ios-xr')";
+          type leafref {
+            path "/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]"+
+                  "/ncs:config/cisco-ios-xr:interface/cisco-ios-xr:Bundle-Ether/"+
+                  "cisco-ios-xr:id";
+          }
+        }
+
+        leaf interface-description {
+         tailf:info "Custom description for the service, will be added on the subinterface and service instance part of the service name";
+         when "(../if-type != 'None')";
+          type string;
+        }
+
+        leaf end-type {
+          when "(../if-type != 'None')";
+          type enumeration {
+            enum port;
+            enum serv-inst;
+          }
+          default serv-inst;
+        }
+
+        leaf encapsulation {
+          when "(../if-type != 'None') and (../end-type = 'serv-inst')";
+          type enumeration {
+            enum untagged;
+            enum e-default;
+            enum dot1q;
+            enum dot1q-2tags;
+            enum qinq;
+          }
+          default dot1q;
+        }
+
+        leaf s-vlan-assignment {
+          when "((../if-type != 'None') and (../end-type != 'port') and  ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags') or (../encapsulation = 'qinq'))) ";
+          type enumeration {
+            enum manual;
+            enum auto;
+          }
+          default "manual";
+        }
+
+        leaf s-vlan-id {
+          when "((../if-type != 'None')  and (../end-type != 'port') and (../s-vlan-assignment = 'manual') and ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags') or (../encapsulation = 'qinq')))";
+          type int32 {
+             range "2..3500";
+          }
+        }
+
+        leaf-list c-vlan-id {
+          when "((../if-type != 'None') and (../end-type != 'port') and (../encapsulation = 'qinq') or (../encapsulation = 'dot1q-2tags'))";
+          type int32 {
+            range "1..4000";
+          }
+          max-elements 1;
+
+        }
+
+        leaf rewrite {
+          when "((../if-type != 'None')  and (../end-type != 'port')) and ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags')) and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios') ";
+          type enumeration {
+            enum pop-1;
+            enum pop-2;
+            enum no-rewrite;
+          }
+          default pop-2;
+        }
+
+        leaf ip-assignment {
+            when "((../if-type != 'None')) ";
+            type enumeration {
+              //enum auto;
+              enum manual;
+            }
+            default manual;
+        }
+
+      	leaf pe-ip-addr {
+        	when "(../if-type != 'None') and (../ip-assignment = 'manual')";
+       		type inet:ip-address;
+            mandatory true;
+      	}
+
+      	leaf pe-mask {
+        	when "(../if-type != 'None' and ../ip-assignment = 'manual')";
+        	type string {
+     	        pattern "(255)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)";
+
+        	}
+          mandatory true;
+      	}
+
+        leaf bdi-mac {
+          when "(../if-type != 'None')";
+          type string ;
+        }
+
+      	leaf gw-redundancy {
+          when "(../if-type != 'None')";
+          type enumeration {
+            enum None;
+            enum HSRP;
+            enum VRRP;
+           }
+          default None;
+        }
+
+        leaf vip-ip-addr {
+        	when "(../gw-redundancy != 'None')";
+       		type inet:ip-address;
+          //mandatory true;
+      	}
+
+      	leaf vip-priority {
+        	when "(../gw-redundancy != 'None') ";
+        	type enumeration {
+        	    enum 130;
+        	    enum 110;
+        	}
+        	default 130;
+      	}
+
+      	leaf vip-group {
+        	when "(../gw-redundancy != 'None') ";
+        	type int16 {
+        	    range "1..255";
+        	}
+        	default 10;
+      	}
+
+        leaf se-id {
+          tailf:info "Service-Instance ID allocated for interface";
+          type string;
+          config false;
+          tailf:cdb-oper {
+            tailf:persistent true;
+          }
+        }
+
+        leaf bd-id {
+          tailf:info "Service-Instance ID allocated for interface";
+          type string;
+          config false;
+          tailf:cdb-oper {
+            tailf:persistent true;
+          }
+        }
+
+        leaf mep-id {
+          tailf:info "MEP ID allocated for interface";
+          type string;
+          config false;
+          tailf:cdb-oper {
+            tailf:persistent true;
+          }
+        }
+
+        leaf vc-id {
+          tailf:info "VC ID allocated for interface";
+          type string;
+          config false;
+          tailf:cdb-oper {
+            tailf:persistent true;
+          }
+        }
+
+        container QoS {
+          leaf interface-bandwidth {
+            tailf:info "Bandwidth Allocation per interface, in Mbps";
+            type uint32;
+            mandatory true;
+          }
+          choice QoS-profile {
+            case default-QoS-profile {
+              leaf policy-map-default {
+                tailf:info "Use DATA for data services and VIDEO for video services";
+                type enumeration {
+                  enum SP-DATA;
+                  enum SP-VIDEO;
+                  }
+                  default "SP-DATA";
+              }
+            }
+            case No-QoS-profile {
+              leaf no-qos-profile {
+              tailf:info "POLICER-ONLY will only rate limit the traffic, POLICER-DISABLED won't add any policy map";
+                type enumeration {
+                  enum POLICER-ONLY;
+                  enum POLICER-DISABLED;
+                  }
+                  default "POLICER-ONLY";
+              }
+            }
+            default "No-QoS-profile";
+          }
+        }
+
+        container connected-cpe {
+          leaf connected-cpe {
+            tailf:info "True if CPE is connected to that interfaces";
+            type enumeration {
+              enum true;
+              enum false;
+            }
+             default false;
+          }
+
+          leaf cpe-device-in-nso {
+            tailf:info "True if CPE is managed by NSO";
+            when "(../connected-cpe = 'true')";
+            type enumeration {
+              enum true;
+              enum false;
+            }
+             default false;
+          }
+
+          leaf cpe-device {
+            when "((../connected-cpe = 'true') and (../cpe-device-in-nso = 'true'))";
+              type leafref {
+                path "/ncs:devices/ncs:device/ncs:name";
+              }
+              must "(starts-with(deref(current())/../ncs:platform/ncs:name,'ios-xe')) or (starts-with(deref(current())/../ncs:platform/ncs:name,'junos'))";
+          }
+
+          leaf cpe-device-manual {
+            when "((../connected-cpe = 'true') and (../cpe-device-in-nso = 'false'))";
+            type string;
+          }
+
+          container cpe-device-interface {
+            when "((../connected-cpe = 'true') and (../cpe-device-in-nso = 'true'))";
+            tailf:cli-no-keyword;
+
+            leaf if-type {
+              tailf:info "Physical or logical interface";
+              type enumeration {
+                enum Physical;
+                enum PortChannel;
+              }
+              default Physical;
+            }
+
+            leaf if-size {
+              tailf:info "Physical interface: GigabitEthernet or TenGigabitEthernet";
+              when "(../if-type = 'Physical')";
+              type enumeration {
+                 enum GigabitEthernet;
+                 enum TenGigabitEthernet;
+              }
+              //mandatory true;
+            }
+
+            container ios-xe {
+                tailf:cli-no-keyword;
+                when "/ncs:devices/ncs:device[ncs:name=current()/../../cpe-device]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios'";
+
+                tailf:cli-drop-node-name;
+                tailf:cli-sequence-commands;
+                tailf:cli-compact-syntax;
+
+                container GigabitEthernet {
+                  when "((../../if-size='GigabitEthernet') and (../../if-type='Physical'))";
+                  tailf:cli-drop-node-name;
+                  tailf:cli-sequence-commands;
+                  tailf:cli-compact-syntax;
+                  tailf:cli-no-keyword;
+                  leaf if-num {
+                    tailf:info "Gigabit Ethernet Interface Number";
+                    tailf:cli-drop-node-name;
+                    tailf:cli-no-keyword;
+                    //mandatory true;
+                    type leafref {
+                      path "/ncs:devices/ncs:device[ncs:name=current()/../../../../cpe-device]"+
+                            "/ncs:config/ios:interface/ios:GigabitEthernet"+
+                            "/ios:name";
+                    }
+                  }
+                  uses cpe-interface-values;
+                }
+                container TenGigabitEthernet {
+                  when "((../../if-size='TenGigabitEthernet') and (../../if-type='Physical'))";
+                  tailf:cli-drop-node-name;
+                  tailf:cli-sequence-commands;
+                  tailf:cli-compact-syntax;
+                  tailf:cli-no-keyword;
+                  leaf if-num {
+                    tailf:info "Ten Gigabit Ethernet Interface Number";
+                    tailf:cli-drop-node-name;
+                    tailf:cli-no-keyword;
+                    //mandatory true;
+                    type leafref {
+                      path "/ncs:devices/ncs:device[ncs:name=current()/../../../../cpe-device]"+
+                            "/ncs:config/ios:interface/ios:TenGigabitEthernet"+
+                            "/ios:name";
+                    }
+                  }
+                  uses cpe-interface-values;
+
+                }
+                container PortChannel {
+                  when "../../if-type='PortChannel'";
+                  tailf:cli-drop-node-name;
+                  tailf:cli-sequence-commands;
+                  tailf:cli-compact-syntax;
+                  tailf:cli-no-keyword;
+                  leaf if-num {
+                    tailf:info "PortChannel Interface Number";
+                    tailf:cli-drop-node-name;
+                    tailf:cli-no-keyword;
+                    //mandatory true;
+                    type leafref {
+                      path "/ncs:devices/ncs:device[ncs:name=current()/../../../../cpe-device]"+
+                            "/ncs:config/ios:interface/ios:Port-channel"+
+                            "/ios:name";
+                    }
+                  }
+                  uses cpe-interface-values;
+                }
+            }
+
+            container routing {
+              leaf routing-enabled {
+                type enumeration {
+                  enum true;
+                  enum false;
+                }
+                 default false;
+              }
+
+              leaf cpe-ip-assignment {
+                when "(../routing-enabled = 'true')";
+                type enumeration {
+                  enum auto;
+                  enum manual;
+                }
+                default manual;
+              }
+
+        	    leaf cpe-ip-addr {
+                when "(../cpe-ip-assignment = 'manual') and (../routing-enabled = 'true')";
+         	      type inet:ip-address;
+                mandatory true;
+        	    }
+
+        	    leaf cpe-mask {
+                when "(../cpe-ip-assignment = 'manual') and (../routing-enabled = 'true')";
+              	type string {
+       	            pattern "(255)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)[.](255|254|252|248|240|224|192|128|0)";
+              	}
+                mandatory true;
+        	    }
+
+              container ce-pe-proto {
+                when "(../routing-enabled = 'true')";
+                uses pe-ce-routing;
+              }
+        	  }
+
+
+            }
+
+          leaf cpe-device-oam {
+            tailf:info "True if CPE has CFM enabled";
+            when "(../connected-cpe = 'true')";
+            type enumeration {
+              enum true;
+              enum false;
+            }
+             default false;
+          }
+
+          leaf cpe-device-mpid {
+            when "((../connected-cpe = 'true') and (../cpe-device-oam = 'true') and (../cpe-device-in-nso = 'false'))";
+            type int32 {
+              range "1..8191";
+            }
+          }
+
+          leaf cpe-device-ethernet-sla {
+            tailf:info "True if CPE has EOAM SLA enabled";
+            when "((../connected-cpe = 'true') and (../cpe-device-oam = 'true'))";
+            type enumeration {
+              enum true;
+              enum false;
+            }
+             default false;
+          }
+        }
+      }
+
+      container ce-pe-prot {
+        tailf:cli-add-mode;
+        uses pe-ce-routing;
+      }
+
+      container routes-redistribution {
+        leaf static-routes {
+          type enumeration {
+            enum enable;
+            enum disable;
+          }
+          default enable;
+        }
+        leaf connected-routes {
+          type enumeration {
+            enum enable;
+            enum disable;
+          }
+          default enable;
+        }
+      }
+
+      leaf vpn-pool {
+        tailf:info "dumb node to be referenced in leaf vpn_id";
+  	    config false;
+        type enumeration {
+           enum "VPN_ID";
+        }
+  		  default "VPN_ID";
+  	  }
+
+      container vrf-leaking {
+        leaf vrf-import-local {
+          type enumeration {
+            enum enable;
+            enum disable;
+          }
+          default disable;
+        }
+
+        leaf vrf-export-local {
+          type enumeration {
+            enum enable;
+            enum disable;
+          }
+          default enable;
+        }
+
+        leaf-list vrf-import-export-remote {
+          type leafref {
+             path "/ralloc:resource-pools/idalloc:id-pool[idalloc:name=current()/../../vpn-pool]/idalloc:allocation/idalloc:id";
+          }
+          must 'contains(/ralloc:resource-pools/idalloc:id-pool[idalloc:name=current()/../../vpn-pool]/idalloc:allocation/idalloc:allocating-service, "CRUISE-SERVICES:CRUISE-SERVICES")';
+        }
+
+      }
+
+    }
+
+     tailf:action devices-sync-from {
+        tailf:actionpoint Cruise_L3VPN_DevicesSyncFrom-action;
+        output {
+          leaf result {
+            type string;
+          }
+        }
+      }
+
+  }
+ }
+}

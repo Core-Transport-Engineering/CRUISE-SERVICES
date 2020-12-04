@@ -1,0 +1,21 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{$PE}</name>
+      <config tags="merge">
+      <ip xmlns="urn:ios" tags="merge">
+       <route>
+         <vrf>
+           <name>{$VRF_NAME}</name>
+           <ip-route-forwarding-list>
+             <prefix>{$CUSTOMER-PREFIX}</prefix>
+             <mask>{$CUSTOMER-PREFIX-MASK}</mask>
+             <forwarding-address>{$CUSTOMER-PREFIX-NH}</forwarding-address>
+           </ip-route-forwarding-list>
+         </vrf>
+        </route>
+       </ip>
+      </config>
+    </device>
+  </devices>
+</config-template>

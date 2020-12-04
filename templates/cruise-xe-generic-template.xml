@@ -1,0 +1,91 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <vrf xmlns="urn:ios" tags="merge">
+                    <definition>
+                        <name>{$VRF_NAME}</name>
+                        <rd>{$RD}</rd>
+                        <address-family>
+                            <ipv4>
+                                <route-target>
+                                    <export when="{$RT_EXPORT_OPTION = 'enable'}">
+                                        <asn-ip>{$RT_EXPORT_LOCAL}</asn-ip>
+                                    </export>
+                                    <import when="{$RT_IMPORT_OPTION = 'enable'}">
+                                        <asn-ip>{$RT_IMPORT_LOCAL}</asn-ip>
+                                    </import>
+                                    <import when="{$RT_IMPORT_EXT != ''}">
+                                        <asn-ip>{$RT_IMPORT_EXT}</asn-ip>
+                                    </import>
+                                    <export when="{$RT_EXPORT_EXT != ''}">
+                                        <asn-ip>{$RT_EXPORT_EXT}</asn-ip>
+                                    </export>
+                                </route-target>
+                            </ipv4>
+                        </address-family>
+                    </definition>
+                </vrf>
+                <router xmlns="urn:ios" tags="merge">
+                    <bgp tags="merge">
+                        <as-no>{$PE_AS_NO}</as-no>
+                        <address-family>
+                            <with-vrf>
+                                <ipv4>
+                                    <af>unicast</af>
+                                    <vrf>
+                                        <name>{$VRF_NAME}</name>
+                                        <redistribute>
+                                            <connected when="{$REDISTRIBUTE_CONNECTED = 'enable'}"></connected>
+                                            <static when="{$REDISTRIBUTE_STATIC = 'enable'}"></static>
+                                        </redistribute>
+                                        <neighbor when="{$CE_PE_RP = 'e-bgp'}">
+                                            <id>{$CE_PE_NEI}</id>
+                                            <remote-as>{$CE_PE_AS}</remote-as>
+                                            <password when="{$CE_AS_MD5 != 'None'}">
+                                                <text>{$CE_AS_MD5}</text>
+                                            </password>
+                                            <timers when="{($CE_KEEPALIVE != 'None') and ($CE_HOLD != 'None') }">
+                                                <keepalive-interval>{$CE_KEEPALIVE}</keepalive-interval>
+                                                <holdtime>{$CE_HOLD}</holdtime>
+                                            </timers>
+                                            <activate/>
+                                            <send-community>
+                                                <send-community-where>both</send-community-where>
+                                            </send-community>
+                                            <internal-vpn-client when="{$VPN_INTERNAL = 'enable'}"/>
+                                            <route-reflector-client when="{$RR-CLIENT = 'enable'}"/>
+                                            <next-hop-self when="{$NH-SELF = 'enable'}"/>
+                                            <maximum-prefix when="{$MAX-PREF = 'enable'}">
+                                                <max-prefix-no>100</max-prefix-no>
+                                                <threshold>80</threshold>
+                                            </maximum-prefix>
+                                            <as-override when="{$AS-OVERRIDE = 'enable'}"/>
+                                            <allowas-in when="{$ALLOW-AS = 'enable'}"/>
+                                            <default-originate when="{$DEF-ORIG = 'enable'}"/>
+                                            <route-map when="{($RM-IN = 'enable') and ($PE-CE-RM-IN != '')}">
+                                                <direction>in</direction>
+                                                <route-map-name>{$PE-CE-RM-IN}</route-map-name>
+                                            </route-map>
+                                            <route-map when="{($RM-OUT = 'enable') and ($PE-CE-RM-OUT != '')}">
+                                                <direction>out</direction>
+                                                <route-map-name>{$PE-CE-RM-OUT}</route-map-name>
+                                            </route-map>
+                                            <dmzlink-bw when="{$DMZ_LINK = 'enable'}"/>
+                                        </neighbor>
+                                        <maximum-paths>
+                                          <paths>
+                                            <number-of-paths>6</number-of-paths>
+                                          </paths>
+                                        </maximum-paths>
+                                    </vrf>
+                                </ipv4>
+                            </with-vrf>
+                        </address-family>
+                    </bgp>
+                </router>
+            </config>
+        </device>
+    </devices>
+</config-template>

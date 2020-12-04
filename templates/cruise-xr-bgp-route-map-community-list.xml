@@ -1,0 +1,15 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+            <community-set xmlns="http://tail-f.com/ned/cisco-ios-xr"  when="{$COMMUNITY_LIST = 'enable'}">
+              <name>{$COMM_LIST_NAME}</name>
+              <set>
+                <value>{$COMMUNITY}</value>
+              </set>
+            </community-set>
+             </config>
+        </device>
+    </devices>
+</config-template>

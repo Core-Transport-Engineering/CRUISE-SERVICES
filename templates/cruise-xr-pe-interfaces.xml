@@ -1,0 +1,76 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <TenGigE when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_S_VLAN_ID != '')}">
+                        <id>{$IF_NUM}</id>
+                        <load-interval>30</load-interval>
+                        <transceiver when="{$DEVICE_TYPE = 'ASR9K'}">
+                            <permit>
+                                <pid>
+                                    <all/>
+                                </pid>
+                            </permit>
+                        </transceiver>
+                    </TenGigE>
+                    <Bundle-Ether when="{($IF_SIZE = 'Bundle-Ether')  and ($IF_END_TYPE = 'serv-inst') and ($IF_S_VLAN_ID != '')}">
+                        <id>{$IF_NUM}</id>
+                        <load-interval>30</load-interval>
+                    </Bundle-Ether>
+                    <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <TenGigE>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <vrf>{$VRF_NAME}</vrf>
+                            <ipv4>
+                              <address>
+                                <ip>{$IF_PE_IP_ADDR}</ip>
+                                <mask>{$IF_PE_MASK}</mask>
+                              </address>
+                            </ipv4>
+                            <shutdown tags="delete"/>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation>
+                                <dot1q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <service-policy>
+                                <input>
+                                    <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                </input>
+                            </service-policy>
+                        </TenGigE>
+                    </TenGigE-subinterface>
+                    <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <Bundle-Ether>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation>
+                                <dot1q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <service-policy>
+                                <input>
+                                    <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                </input>
+                            </service-policy>
+                            <vrf>{$VRF_NAME}</vrf>
+                            <ipv4>
+                                <address>
+                                    <ip>{$IF_PE_IP_ADDR}</ip>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </address>
+                            </ipv4>
+                        </Bundle-Ether>
+                    </Bundle-Ether-subinterface>
+
+                </interface>
+            </config>
+        </device>
+    </devices>
+</config-template>

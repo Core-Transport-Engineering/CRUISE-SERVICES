@@ -1,0 +1,48 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <policy-map xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge"  when="{$SERV_QOS_PROFILE = 'default-QoS-profile'}">
+                    <name>{$L3_SERV_NAME}-{$PM_ID}-INGRESS</name>
+                    <class>
+                        <class-default>
+                            <map>class-default</map>
+                            <police-rate-unit>
+                                <police>
+                                    <rate>
+                                        <cir>{$INT_BW}</cir>
+                                        <cir-unit>mbps</cir-unit>
+                                    </rate>
+                                </police>
+                            </police-rate-unit>
+                            <service-policy>
+                                <name>{$DATA-VIDEO}</name>
+                            </service-policy>
+                        </class-default>
+                    </class>
+                </policy-map>
+                <policy-map xmlns="http://tail-f.com/ned/cisco-ios-xr" tags="merge"  when="{($SERV_QOS_PROFILE = 'No-QoS-profile') and ($POLICER = 'enable')}">
+                    <name>{$L3_SERV_NAME}-{$PM_ID}-INGRESS</name>
+                    <class>
+                        <class-default>
+                            <map>class-default</map>
+                            <police-rate-unit>
+                                <police>
+                                    <rate>
+                                        <cir>{$INT_BW}</cir>
+                                        <cir-unit>mbps</cir-unit>
+                                    </rate>
+                                </police>
+                            </police-rate-unit>
+                            <service-policy>
+                                <name>{$DATA-VIDEO}</name>
+                            </service-policy>
+                        </class-default>
+                    </class>
+                </policy-map>
+            </config>
+        </device>
+    </devices>
+</config>
+

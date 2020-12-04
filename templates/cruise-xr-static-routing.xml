@@ -1,0 +1,26 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{$PE}</name>
+      <config tags="merge">
+      <router xmlns="http://tail-f.com/ned/cisco-ios-xr">
+      <static>
+        <vrf>
+          <name>{$VRF_NAME}</name>
+          <address-family>
+            <ipv4>
+              <unicast>
+                <routes-ip>
+                  <net>{$CUSTOMER-PREFIX}/{$CUSTOMER-PREFIX-MASK}</net>
+                  <address>{$CUSTOMER-PREFIX-NH}</address>
+                </routes-ip>
+              </unicast>
+            </ipv4>
+          </address-family>
+        </vrf>
+      </static>
+      </router>
+      </config>
+    </device>
+  </devices>
+</config-template>

@@ -1,0 +1,61 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <policy-map xmlns="urn:ios" tags="merge" when="{$SERV_QOS_PROFILE = 'default-QoS-profile'}">
+                    <name>{$L3_SERV_NAME}-{$PM_ID}-INGRESS</name>
+                    <class-default>
+                        <class>
+                            <name>class-default</name>
+                            <police-policy-map>
+                                <police>
+                                    <cir>{$INT_BW}000000</cir>
+                                    <actions>
+                                        <conform-transmit>
+                                            <conform-action>
+                                                <transmit/>
+                                            </conform-action>
+                                        </conform-transmit>
+                                        <exceed-drop>
+                                            <exceed-action>
+                                                <drop/>
+                                            </exceed-action>
+                                        </exceed-drop>
+                                    </actions>
+                                </police>
+                            </police-policy-map>
+                            <service-policy>{$DATA-VIDEO}</service-policy>
+                        </class>
+                    </class-default>
+                </policy-map>
+                <policy-map xmlns="urn:ios" tags="merge" when="{($SERV_QOS_PROFILE = 'No-QoS-profile') and ($POLICER = 'enable')}">
+                    <name>{$L3_SERV_NAME}-{$PM_ID}-INGRESS</name>
+                    <class-default>
+                        <class>
+                            <name>class-default</name>
+                            <police-policy-map>
+                                <police>
+                                    <cir>{$INT_BW}000000</cir>
+                                    <actions>
+                                        <conform-transmit>
+                                            <conform-action>
+                                                <transmit/>
+                                            </conform-action>
+                                        </conform-transmit>
+                                        <exceed-drop>
+                                            <exceed-action>
+                                                <drop/>
+                                            </exceed-action>
+                                        </exceed-drop>
+                                    </actions>
+                                </police>
+                            </police-policy-map>
+                        </class>
+                    </class-default>
+                </policy-map>
+            </config>
+        </device>
+    </devices>
+</config>
+

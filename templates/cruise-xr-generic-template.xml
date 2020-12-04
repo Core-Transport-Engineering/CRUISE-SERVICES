@@ -1,0 +1,105 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <vrf xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <vrf-list>
+                        <name>{$VRF_NAME}</name>
+                        <rd>{$RD}</rd>
+                        <address-family>
+                            <ipv4>
+                                <unicast>
+                                    <import>
+                                        <route-target>
+                                            <address-list when="{$RT_IMPORT_OPTION = 'enable'}">
+                                                <name>{$RT_IMPORT_LOCAL}</name>
+                                            </address-list>
+                                            <address-list when="{$RT_IMPORT_EXT != ''}">
+                                                <name>{$RT_IMPORT_EXT}</name>
+                                            </address-list>
+                                        </route-target>
+                                    </import>
+                                    <export>
+                                        <route-target>
+                                            <address-list when="{$RT_EXPORT_OPTION = 'enable'}">
+                                                <name>{$RT_EXPORT_LOCAL}</name>
+                                            </address-list>
+                                            <address-list when="{$RT_EXPORT_EXT != ''}">
+                                                <name>{$RT_EXPORT_EXT}</name>
+                                            </address-list>
+                                        </route-target>
+                                    </export>
+                                </unicast>
+                            </ipv4>
+                        </address-family>
+                    </vrf-list>
+                </vrf>
+                <router  xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <bgp>
+                        <bgp-no-instance>
+                            <id>{$PE_AS_NO}</id>
+                            <vrf>
+                                <name>{$VRF_NAME}</name>
+                                <rd>{$RD}</rd>
+                                <address-family>
+                                    <ipv4>
+                                        <unicast>
+                                            <redistribute>
+                                                <connected when="{$REDISTRIBUTE_CONNECTED = 'enable'}"></connected>
+                                                <static when="{$REDISTRIBUTE_STATIC = 'enable'}"></static>
+                                            </redistribute>
+                                        </unicast>
+                                    </ipv4>
+                                </address-family>
+                                <neighbor when="{$CE_PE_RP = 'e-bgp'}">
+                                    <id>{$CE_PE_NEI}</id>
+                                    <remote-as>{$CE_PE_AS}</remote-as>
+                                    <timers when="{($CE_KEEPALIVE != 'None') and ($CE_HOLD != 'None') }">
+                                        <keepalive>{$CE_KEEPALIVE}></keepalive>
+                                        <holdtime>{$CE_HOLD}</holdtime>
+                                    </timers>
+                                    <password when="{$CE_AS_MD5 != 'None'}">
+                                        <enc-type>clear</enc-type>
+                                        <password>{$CE_AS_MD5}</password>
+                                    </password>
+                                    <address-family>
+                                        <ipv4>
+                                            <unicast>
+                                                <multipath/>
+                                                <allowas-in when="{$ALLOW-AS = 'enable'}">
+                                                    <as-occurrence-number>3</as-occurrence-number>
+                                                </allowas-in>
+                                                <as-override when="{$AS-OVERRIDE = 'enable'}"/>
+                                                <maximum-prefix when="{$MAX-PREF = 'enable'}">
+                                                    <max-prefix-limit>100</max-prefix-limit>
+                                                    <threshold>90</threshold>
+                                                    <discard-extra-paths/>
+                                                </maximum-prefix>
+                                                <next-hop-self when="{$NH-SELF = 'enable'}"/>
+                                                <default-originate when="{$DEF-ORIG = 'enable'}"/>
+                                                <route-policy when="{($RM-IN = 'enable') and ($PE-CE-RM-IN != '')}">
+                                                    <direction>in</direction>
+                                                    <name>{$PE-CE-RM-IN}</name>
+                                                </route-policy>
+                                                <route-policy when="{($RM-OUT = 'enable') and ($PE-CE-RM-OUT != '')}">
+                                                    <direction>out</direction>
+                                                    <name>{$PE-CE-RM-OUT}</name>
+                                                </route-policy>
+                                                <send-community-ebgp>
+                                                </send-community-ebgp>
+                                                <send-extended-community-ebgp>
+                                                </send-extended-community-ebgp>
+                                            </unicast>
+                                        </ipv4>
+                                    </address-family>
+                                </neighbor>
+                            </vrf>
+                        </bgp-no-instance>
+                    </bgp>
+                </router>
+
+            </config>
+        </device>
+    </devices>
+</config-template>

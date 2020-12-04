@@ -1,0 +1,22 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ip xmlns="urn:ios">
+                    <community-list when="{$COMMUNITY_LIST = 'enable'}">
+                        <expanded>
+                            <name>{$COMM_LIST_NAME}</name>
+                            <entry when="{$ACTION = 'deny'}">
+                              <expr>deny {$COMMUNITY}</expr>
+                            </entry>
+                            <entry when="{$ACTION = 'permit'}">
+                              <expr>permit {$COMMUNITY}</expr>
+                            </entry>
+                        </expanded>
+                    </community-list>
+                </ip>
+             </config>
+        </device>
+    </devices>
+</config-template>

@@ -1,0 +1,72 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ethernet xmlns="urn:ios" tags="merge" when="{($IF_END_TYPE = 'serv-inst')}">
+                    <cfm when="{$EOAM = 'active'}">
+                        <ieee/>
+                        <global/>
+                        <domain when="{$CPE_CFM = 'active'}">
+                            <name>SES-L1</name>
+                            <level>1</level>
+                            <service when="{ ($SERV_INST != 'None') and ($BD_ID != 'None') and ($VC_ID != '')}">
+                                <csi-id>{$SERVICE_NAME}-{$IF_ID}</csi-id>
+                                <evc>{$VC_ID}</evc>
+                                <vlan>{$BD_ID}</vlan>
+                                <direction>down</direction>
+                                <continuity-check>
+                                    <interval>1s</interval>
+                                </continuity-check>
+                            </service>
+                        </domain>
+                    </cfm>
+                </ethernet>
+                <interface xmlns="urn:ios" tags="merge">
+                    <Port-channel tags="merge" when="{ ($EOAM = 'active') and ($IF_SIZE = 'Port-channel') and ($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP != 'qinq') and ($SERV_INST != 'None')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <cfm>
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$PE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                        </instance>
+                        </service>
+                    </Port-channel>
+                    <GigabitEthernet tags="merge" when="{($EOAM = 'active') and ($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP != 'qinq') and ($SERV_INST != 'None')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <cfm>
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$PE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                        </instance>
+                        </service>
+                    </GigabitEthernet>
+                    <TenGigabitEthernet tags="merge" when="{($EOAM = 'active') and ($IF_SIZE = 'TenGigabitEthernet') and ($IF_END_TYPE = 'serv-inst') and ($IF_ENCAP != 'qinq') and ($SERV_INST != 'None')}">
+                        <name>{$IF_NUM}</name>
+                        <service>
+                        <instance>
+                            <id>{$SERV_INST}</id>
+                            <cfm>
+                                <mep>
+                                    <domain>SES-L1</domain>
+                                    <mpid>{$PE_MEP_ID}</mpid>
+                                </mep>
+                            </cfm>
+                        </instance>
+                        </service>
+                    </TenGigabitEthernet>
+                </interface>
+             </config>
+        </device>
+     </devices>
+</config-template>
