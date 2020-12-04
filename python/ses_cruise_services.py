@@ -45,7 +45,6 @@ class ServiceCallbacks (ncs.application.Service):
             if serv_qos_profile == "default-QoS-profile":
                 self.log.info ("                        Default QoS profile")
                 qos_type = qos_interface.QoS.policy_map_default
-                # self.log.info ("DEBUG default-QoS-profile ", qos_type)
                 if qos_type == "SP-DATA-INGRESS-MODEL-PIPE":
                     self.log.info ("                        Child policy type DATA")
                     pm_tv.add ('DATA-VIDEO', "SP-DATA-INGRESS-MODEL-PIPE")
@@ -244,7 +243,6 @@ class ServiceCallbacks (ncs.application.Service):
             tmpl = ncs.template.Template (service)
 
             device_type_yang = root.devices.device[device.access_pe].device_type.cli.ned_id
-            # self.log.info ("DEBUG YANG", device_type_yang)
 
             bgp_rm_tv.add ('PE', device.access_pe)
 
@@ -265,7 +263,6 @@ class ServiceCallbacks (ncs.application.Service):
 
             route_map_len = len(neighbor.bgp_route_map_in.route_map_bgp.route_map_seq)
             route_map_len = route_map_len * 10
-            # self.log.info ("DEBUG RM LEN", route_map_len)
 
             for route_map_sequence in neighbor.bgp_route_map_in.route_map_bgp.route_map_seq:
                 route_map_seq = route_map_sequence.route_map_seq
@@ -389,20 +386,15 @@ class ServiceCallbacks (ncs.application.Service):
                         if len (set_sequence.set_as_path.as_path) > 0:
                             as_paths = []
                             for as_path in set_sequence.set_as_path.as_path:
-                                # self.log.info ("DEBUG AS-PATH SEQ ", as_path.as_path_seq)
-                                # self.log.info ("DEBUG AS-PATH PREP ", as_path.prepend)
                                 as_path_prepend = as_path.prepend
                                 as_paths.append(as_path_prepend)
 
                             as_path_list = ' '.join (str (e) for e in as_paths)
                             as_path_list_len = len(as_paths)
-                            # self.log.info ("DEBUG AS-PATH LIST ", as_path_list, " ", as_path_list_len)
                             self.log.info ("                                Set AS-PATH prepend: ", as_path_list)
 
                             bgp_rm_tv.add ('AS_PATH', as_path_list)
                             xr_set_prepend = "    prepend as-path " + str(as_path_prepend) + " " + str(as_path_list_len) + "\r\n"
-                            # self.log.info ("DEBUG XR ", xr_set_prepend)
-
 
                             if device_type_yang == "ios-id:cisco-ios":
                                 tmpl.apply ('cruise-xe-bgp-route-map', bgp_rm_tv)
@@ -495,7 +487,6 @@ class ServiceCallbacks (ncs.application.Service):
             tmpl = ncs.template.Template (service)
 
             device_type_yang = root.devices.device[device.access_pe].device_type.cli.ned_id
-            # self.log.info ("DEBUG YANG", device_type_yang)
 
             bgp_rm_tv.add ('PE', device.access_pe)
 
@@ -516,7 +507,6 @@ class ServiceCallbacks (ncs.application.Service):
 
             route_map_len = len(neighbor.bgp_route_map_out.route_map_bgp.route_map_seq)
             route_map_len = route_map_len * 10
-            # self.log.info ("DEBUG RM LEN", route_map_len)
 
             for route_map_sequence in neighbor.bgp_route_map_out.route_map_bgp.route_map_seq:
                 route_map_seq = route_map_sequence.route_map_seq
@@ -639,19 +629,15 @@ class ServiceCallbacks (ncs.application.Service):
                         if len (set_sequence.set_as_path.as_path) > 0:
                             as_paths = []
                             for as_path in set_sequence.set_as_path.as_path:
-                                # self.log.info ("DEBUG AS-PATH SEQ ", as_path.as_path_seq)
-                                # self.log.info ("DEBUG AS-PATH PREP ", as_path.prepend)
                                 as_path_prepend = as_path.prepend
                                 as_paths.append(as_path_prepend)
 
                             as_path_list = ' '.join (str (e) for e in as_paths)
                             as_path_list_len = len(as_paths)
-                            # self.log.info ("DEBUG AS-PATH LIST ", as_path_list, " ", as_path_list_len)
                             self.log.info ("                                Set AS-PATH prepend: ", as_path_list)
 
                             bgp_rm_tv.add ('AS_PATH', as_path_list)
                             xr_set_prepend = "    prepend as-path " + str(as_path_prepend) + " " + str(as_path_list_len) + "\r\n"
-                            # self.log.info ("DEBUG XR ", xr_set_prepend)
 
 
                             if device_type_yang == "ios-id:cisco-ios":
@@ -903,14 +889,11 @@ class ServiceCallbacks (ncs.application.Service):
 
                     self.log.info ("                            Configure allocated PE-CPE SLA ID RTT: ", sla_id_cpe_rtt)
 
-                    self.log.info ("DEBUG IP SLA SLM ", sla_id_cpe_slm, " SOURCE ",  pe_interface.mep_id, " DESTINATION ", pe_interface.connected_cpe.cpe_device_mpid)
-
-                    self.log.info ("DEBUG IP SLA RTT ", sla_id_cpe_rtt, " SOURCE ", pe_interface.mep_id, " DESTINATION ", pe_interface.connected_cpe.cpe_device_mpid)
 
                     if device_type_yang == "ios-id:cisco-ios":
                         sla_tmpl.apply ('cruise-xe-sla-template', sla_tv)
-                    elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
-                        sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
+                    # elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
+                    #     sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
 
         def configure_cpe(pe, pe_interface, cpe_device):
             cpe_device_type = device_helper.get_device_details (root, cpe_device)
@@ -1354,19 +1337,12 @@ class ServiceCallbacks (ncs.application.Service):
                                 t.apply ()
                                 t.finish_trans ()
 
-                    # bdi_mac, m = mac_allocation(service, tctx, root, pe, pe_interface.id_int)
-                    # if m is False:
-                    #     return
-                    # else:
-                    #     self.log.info ("                        Configure allocated MAC interface BVI for: ", pe, " interface: ",  " BVI", bd_id, " MAC: ", bdi_mac)
-                    #     peint_tv.add ('BDI_MAC', bdi_mac)
+                        if pe_interface.bdi_mac is not None:
+                            self.log.info ("                        Configure allocated interface BVI for: ", pe, " interface: ", " BVI", bd_id, " MAC ", pe_interface.bdi_mac)
+                            peint_tv.add ('BDI_MAC', pe_interface.bdi_mac)
+                        else:
+                            peint_tv.add ('BDI_MAC', 'None')
 
-                    self.log.info ("DEBUG BDI MAC", pe_interface.bdi_mac)
-                    if pe_interface.bdi_mac is not None:
-                        self.log.info ("                        Configure allocated interface BVI for: ", pe, " interface: ", " BVI", bd_id, " MAC ", pe_interface.bdi_mac)
-                        peint_tv.add ('BDI_MAC', 'None')
-                    else:
-                        peint_tv.add ('BDI_MAC', pe_interface.bdi_mac)
 
                     # Generate EVC
 
@@ -1588,7 +1564,7 @@ class ServiceCallbacks (ncs.application.Service):
         if service.service_type == "L3VPN":
             self.log.info (" Provisioning service ", service.service_type, " ", service.name)
 
-            pool_allocation_mode = 'development'
+            pool_allocation_mode = 'production'
             if pool_allocation_mode == 'production':
                 tunnel_pool_start = 500
                 tunnel_pool_end = 65535

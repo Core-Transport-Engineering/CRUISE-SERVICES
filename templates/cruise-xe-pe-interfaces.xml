@@ -12,7 +12,7 @@
                     <GigabitEthernet when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'port')}">
                         <name>{$IF_NUM}</name>
                         <shutdown tags="delete"/>
-                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                         <ip>
                             <address>
                                 <primary>
@@ -47,7 +47,7 @@
                     <TenGigabitEthernet when="{($IF_SIZE = 'TenGigabitEthernet') and ($IF_END_TYPE = 'port')}">
                         <name>{$IF_NUM}</name>
                         <shutdown tags="delete"/>
-                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                         <ip>
                             <address>
                                 <primary>
@@ -81,7 +81,7 @@
                     </TenGigabitEthernet>
                     <BDI when="{ ($IF_END_TYPE = 'serv-inst') and ($IF_SIZE != 'Port-channel') and ($SERV_INST_ID != '') and ($BD_ID != '') and ($IF_PE_IP_ADDR  != '') and ($IF_PE_MASK != '')}">
                         <name>{$BD_ID}</name>
-                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                         <vrf>
                             <forwarding>{$VRF_NAME}</forwarding>
                         </vrf>
@@ -118,8 +118,7 @@
                     <BDI when="{($IF_END_TYPE = 'serv-inst') and ($SERV_INST_ID != '') and ($IF_SIZE = 'Port-channel')  and ($BD_ID != '') and ($DEVICE_TYPE = 'ASR-920')}">
                         <name>{$BD_ID}</name>
                         <mac-address when="{$BDI_MAC != 'None'}">{$BDI_MAC}</mac-address>
-
-                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                         <vrf>
                             <forwarding>{$VRF_NAME}</forwarding>
                         </vrf>
@@ -164,7 +163,7 @@
                                 <id>{$SERV_INST_ID}</id>
                                 <ethernet/>
                                 <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
-                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                                 <encapsulation>
                                     <dot1q>
                                         <id when="{($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'dot1q-2tags'))}">{$IF_S_VLAN_ID}</id>
@@ -217,7 +216,7 @@
                                 <id>{$SERV_INST_ID}</id>
                                 <ethernet/>
                                 <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
-                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                                 <encapsulation>
                                     <dot1ad>
                                         <id>{$IF_S_VLAN_ID}</id>
@@ -259,7 +258,7 @@
                                 <id>{$SERV_INST_ID}</id>
                                 <ethernet/>
                                 <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
-                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                                <encapsulation>
                                     <dot1q>
                                         <id when="{($IF_END_TYPE = 'serv-inst') and (($IF_ENCAP = 'dot1q') or ($IF_ENCAP = 'dot1q-2tags'))}">{$IF_S_VLAN_ID}</id>
@@ -313,7 +312,7 @@
                                 <id>{$SERV_INST_ID}</id>
                                 <ethernet/>
                                 <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
-                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                                 <encapsulation>
                                     <dot1ad>
                                         <id>{$IF_S_VLAN_ID}</id>
@@ -349,7 +348,7 @@
                     </TenGigabitEthernet>
                     <Port-channel tags="merge" when="{($IF_SIZE = 'Port-channel') and ($IF_ENCAP = 'untagged')  and ($DEVICE_TYPE = 'ASR-1001')}">
                         <name>{$IF_NUM}</name>
-                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                        <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                         <ip>
                             <address>
                                 <primary>
@@ -375,7 +374,7 @@
                     <Port-channel-subinterface when="{($IF_SIZE = 'Port-channel') and ($IF_ENCAP = 'dot1q')  and ($DEVICE_TYPE = 'ASR-1001')}">
                         <Port-channel>
                             <name>{$IF_NUM}.{$IF_S_VLAN_ID}</name>
-                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                             <encapsulation when="($IF_ENCAP = 'dot1q')">
                                 <dot1Q>
                                     <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
@@ -409,7 +408,7 @@
                         <service>
                             <instance>
                                 <id>{$SERV_INST_ID}</id>
-                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                                <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO]</description>
                                 <ethernet/>
                                 <ethernet-evc-name>{$VC_ID}</ethernet-evc-name>
                                 <encapsulation when="{($IF_ENCAP = 'dot1q')}">
