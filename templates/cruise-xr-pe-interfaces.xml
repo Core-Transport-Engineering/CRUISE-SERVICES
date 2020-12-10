@@ -4,6 +4,18 @@
             <name>{$PE}</name>
             <config tags="merge">
                 <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <GigabitEthernet when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_S_VLAN_ID != '')}">
+                        <id>{$IF_NUM}</id>
+                        <shutdown tags="delete"/>
+                        <load-interval>30</load-interval>
+                        <transceiver when="{$DEVICE_TYPE = 'ASR9K'}">
+                            <permit>
+                                <pid>
+                                    <all/>
+                                </pid>
+                            </permit>
+                        </transceiver>
+                    </GigabitEthernet>
                     <TenGigE when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_S_VLAN_ID != '')}">
                         <id>{$IF_NUM}</id>
                         <load-interval>30</load-interval>
@@ -68,7 +80,76 @@
                             </ipv4>
                         </Bundle-Ether>
                     </Bundle-Ether-subinterface>
-
+                    <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q') and ($IF_S_VLAN_ID != '')}">
+                        <Bundle-Ether>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation>
+                                <dot1q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                </dot1q>
+                            </encapsulation>
+                            <service-policy>
+                                <input>
+                                    <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                </input>
+                            </service-policy>
+                            <vrf>{$VRF_NAME}</vrf>
+                            <ipv4>
+                                <address>
+                                    <ip>{$IF_PE_IP_ADDR}</ip>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </address>
+                            </ipv4>
+                        </Bundle-Ether>
+                    </Bundle-Ether-subinterface>
+                    <GigabitEthernet-subinterface when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <GigabitEthernet>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation>
+                                <dot1q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                    <second-dot1q>{$IF_C_VLAN_ID}</second-dot1q>
+                                </dot1q>
+                            </encapsulation>
+                            <service-policy>
+                                <input>
+                                    <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                </input>
+                            </service-policy>
+                            <vrf>{$VRF_NAME}</vrf>
+                            <ipv4>
+                                <address>
+                                    <ip>{$IF_PE_IP_ADDR}</ip>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </address>
+                            </ipv4>
+                        </GigabitEthernet>
+                    </GigabitEthernet-subinterface>
+                    <GigabitEthernet-subinterface when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q') and ($IF_S_VLAN_ID != '')}">
+                        <GigabitEthernet>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
+                            <encapsulation>
+                                <dot1q>
+                                    <vlan-id>{$IF_S_VLAN_ID}</vlan-id>
+                                </dot1q>
+                            </encapsulation>
+                            <service-policy>
+                                <input>
+                                    <name>{$VRF_NAME}-{$ID_INT}-INGRESS</name>
+                                </input>
+                            </service-policy>
+                            <vrf>{$VRF_NAME}</vrf>
+                            <ipv4>
+                                <address>
+                                    <ip>{$IF_PE_IP_ADDR}</ip>
+                                    <mask>{$IF_PE_MASK}</mask>
+                                </address>
+                            </ipv4>
+                        </GigabitEthernet>
+                    </GigabitEthernet-subinterface>
                 </interface>
             </config>
         </device>

@@ -93,11 +93,6 @@
                                 </primary>
                             </address>
                         </ip>
-                        <ethernet when="{$IF_ENCAP = 'qinq'}">
-                            <dot1ad>
-                                <nni/>
-                            </dot1ad>
-                        </ethernet>
                         <standby tags="merge" when="{($GW_RED = 'HSRP')}">
                             <standby-list>
                                 <group-number>{$VIP_GROUP}</group-number>
@@ -133,11 +128,6 @@
                                 </primary>
                             </address>
                         </ip>
-                        <ethernet when="{$IF_ENCAP = 'qinq'}">
-                            <dot1ad>
-                                <nni/>
-                            </dot1ad>
-                        </ethernet>
                         <standby tags="merge" when="{($GW_RED = 'HSRP')}">
                             <standby-list>
                                 <group-number>{$VIP_GROUP}</group-number>

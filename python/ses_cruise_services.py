@@ -892,8 +892,8 @@ class ServiceCallbacks (ncs.application.Service):
 
                     if device_type_yang == "ios-id:cisco-ios":
                         sla_tmpl.apply ('cruise-xe-sla-template', sla_tv)
-                    # elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
-                    #     sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
+                    elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
+                        sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
 
         def configure_cpe(pe, pe_interface, cpe_device):
             cpe_device_type = device_helper.get_device_details (root, cpe_device)
@@ -1427,14 +1427,6 @@ class ServiceCallbacks (ncs.application.Service):
                                     t.finish_trans ()
 
 
-                        #     if pe_interface.connected_cpe.cpe_device_oam == "true" and pe_interface.connected_cpe.connected_cpe == "true":
-                        #         peint_tv.add ('CPE_CFM', 'active')
-                        #     else:
-                        #         peint_tv.add ('CPE_CFM', "")
-                        #
-                        # else:
-                        #     peint_tv.add ('MEP_ID', "None")
-
                         interface = str(serv_if_size) + str(serv_if_num) + "_" + str(serv_if_s_vlan_id)
 
                         peint_tv.add ('BD_ID', bd_id)
@@ -1535,24 +1527,19 @@ class ServiceCallbacks (ncs.application.Service):
                     cpe_list.append (cpe_device)
 
                 if service.ethernet_oam == 'active':
-                    if service.ethernet_sla.ethernet_sla_type == 'enable' or pe_interface.connected_cpe.cpe_device_ethernet_sla == "true":
-                        pe_ipsla_pool = pe + '_IPSLA_POOL'
-                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.start = ip_sla_pool_start
-                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.end = ip_sla_pool_end
-
-                    self.log.info ('                        Configure MEP-IF interfaces for connected CPE: ', pe, ' interface: ', int_temp, ' MEP-ID ', pe_interface.mep_id)
-
-
                     # Configure PE-CPE interfaces OAM
                     self.log.info ('                        Configure PE interfaces for connected CPE: ', pe, ' interface: ', int_temp, ' CPE device: ', cpe_device, ' / ', cpe_device_managed)
                     configure_ethernet_oam (pe, pe_interface)
 
-                    # Configure PE SLA
-                    self.log.info ("                        Configure PE-CPE SLA")
-                    configure_sla_pe (pe, pe_interface)
+                    if service.ethernet_sla.ethernet_sla_type == 'enable' or pe_interface.connected_cpe.cpe_device_ethernet_sla == "true":
+                        pe_ipsla_pool = pe + '_IPSLA_POOL'
+                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.start = ip_sla_pool_start
+                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.end = ip_sla_pool_end
+                        # Configure PE SLA
+                        self.log.info ("                        Configure PE-CPE SLA")
+                        configure_sla_pe (pe, pe_interface)
 
-                    # if pe_interface.connected_cpe.connected_cpe == "true" and pe_interface.connected_cpe.cpe_device_oam == "true" and pe_interface.connected_cpe.cpe_device_in_nso == "false":
-
+                    self.log.info ('                        Configure MEP-IF interfaces for connected CPE: ', pe, ' interface: ', int_temp, ' MEP-ID ', pe_interface.mep_id)
 
                     if pe_interface.connected_cpe.connected_cpe == "true" and pe_interface.connected_cpe.cpe_device_oam == "true" and pe_interface.connected_cpe.cpe_device_in_nso == "true":
                         # Configure CPE
@@ -1590,10 +1577,6 @@ class ServiceCallbacks (ncs.application.Service):
 
             service_name = service.name
             endpoints = service.endpoint
-
-            # pe_bgp_as_no, pe_lpbk_ip = get_pe_bgp_asn_no (root, service, endpoints)
-            #
-            # interfaces_dict = {}
 
             service_path = "/services/CRUISE-SERVICES[service-type = 'L3VPN'][name = '{}']".format (service.name)
 
@@ -1669,14 +1652,9 @@ class Cruise_L3VPN_DevicesSyncFrom (Action):
         with ncs.maapi.single_write_trans ('admin', 'system', db=ncs.OPERATIONAL) as t:
             root = ncs.maagic.get_root (t)
             service = ncs.maagic.cd (root, kp)
-            devices = []
-
-            for dpe in service.endpoint:
-                devices.append (dpe)
-
-            for device in devices:
-                self.log.info ('Sync-from device: ', device.access_pe)
-                output = root.devices.device[device.access_pe].sync_from ()
+            for device in service.device_list:
+                self.log.info ('Sync-from device: ', device)
+                output = root.devices.device[device].sync_from ()
 
 class Cruise_Services_Sync_all_devices (Action):
     @Action.action
