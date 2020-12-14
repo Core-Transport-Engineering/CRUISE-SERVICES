@@ -22,11 +22,56 @@
                     </cfm>
                 </ethernet>
                 <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
-                    <Bundle-Ether when="{($IF_SIZE = 'Bundle-Ether')  and ($IF_END_TYPE = 'serv-inst') and ($IF_S_VLAN_ID != '')}">
-                        <id>{$IF_NUM}</id>
-                        <load-interval>30</load-interval>
-                    </Bundle-Ether>
+                    <GigabitEthernet-subinterface when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <GigabitEthernet>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </GigabitEthernet>
+                    </GigabitEthernet-subinterface>
+                    <GigabitEthernet-subinterface when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q') and ($IF_S_VLAN_ID != '')}">
+                        <GigabitEthernet>
+                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+
+                        </GigabitEthernet>
+                    </GigabitEthernet-subinterface>
                     <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <TenGigE>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </TenGigE>
+                    </TenGigE-subinterface>
+                    <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q') and ($IF_S_VLAN_ID != '')}">
                         <TenGigE>
                             <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
                             <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
@@ -43,6 +88,22 @@
                         </TenGigE>
                     </TenGigE-subinterface>
                     <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
+                        <Bundle-Ether>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
+                            <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">
+                                <cfm>
+                                    <mep>
+                                        <domain>
+                                            <name>SES-L1</name>
+                                            <service>{$SERVICE_NAME}-{$IF_ID}</service>
+                                            <mep-id>{$PE_MEP_ID}</mep-id>
+                                        </domain>
+                                    </mep>
+                                </cfm>
+                            </ethernet>
+                        </Bundle-Ether>
+                    </Bundle-Ether-subinterface>
+                    <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q') and ($IF_S_VLAN_ID != '')}">
                         <Bundle-Ether>
                             <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
                             <ethernet when="{($CPE_CFM = 'active') and ($PE_MEP_ID != 'None')}">

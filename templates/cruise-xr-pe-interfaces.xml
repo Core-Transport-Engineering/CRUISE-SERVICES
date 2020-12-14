@@ -33,7 +33,7 @@
                     </Bundle-Ether>
                     <TenGigE-subinterface when="{($IF_SIZE = 'TenGigE') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
                         <TenGigE>
-                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
                             <vrf>{$VRF_NAME}</vrf>
                             <ipv4>
                               <address>
@@ -58,7 +58,7 @@
                     </TenGigE-subinterface>
                     <Bundle-Ether-subinterface when="{($IF_SIZE = 'Bundle-Ether') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
                         <Bundle-Ether>
-                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
                             <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
                             <encapsulation>
                                 <dot1q>
@@ -72,6 +72,7 @@
                                 </input>
                             </service-policy>
                             <vrf>{$VRF_NAME}</vrf>
+                            <bandwidth>{$BDI_BW}000</bandwidth>
                             <ipv4>
                                 <address>
                                     <ip>{$IF_PE_IP_ADDR}</ip>
@@ -105,7 +106,7 @@
                     </Bundle-Ether-subinterface>
                     <GigabitEthernet-subinterface when="{($IF_SIZE = 'GigabitEthernet') and ($IF_END_TYPE = 'serv-inst')  and ($IF_ENCAP = 'dot1q-2tags') and ($IF_S_VLAN_ID != '')}">
                         <GigabitEthernet>
-                            <id>{$IF_NUM}.{$IF_S_VLAN_ID}</id>
+                            <id>{$IF_NUM}.{$BD_ID}</id>
                             <description>[{$SERVICE_NAME}]::[{$SERVICE_TYPE}]::[{$CUSTOM_DESCR}]::[NSO-CONFIG-ONLY]</description>
                             <encapsulation>
                                 <dot1q>
