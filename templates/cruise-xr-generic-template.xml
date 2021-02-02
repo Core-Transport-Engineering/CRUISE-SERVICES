@@ -55,6 +55,7 @@
                                 <neighbor when="{$CE_PE_RP = 'e-bgp'}">
                                     <id>{$CE_PE_NEI}</id>
                                     <remote-as>{$CE_PE_AS}</remote-as>
+                                    <description>*** {$NEI_DESCR} ***</description>
                                     <timers when="{($CE_KEEPALIVE != 'None') and ($CE_HOLD != 'None') }">
                                         <keepalive>{$CE_KEEPALIVE}></keepalive>
                                         <holdtime>{$CE_HOLD}</holdtime>

@@ -43,6 +43,7 @@
                                         <neighbor when="{$CE_PE_RP = 'e-bgp'}">
                                             <id>{$CE_PE_NEI}</id>
                                             <remote-as>{$CE_PE_AS}</remote-as>
+                                            <description>*** {$NEI_DESCR} ***</description>
                                             <password when="{$CE_AS_MD5 != 'None'}">
                                                 <text>{$CE_AS_MD5}</text>
                                             </password>

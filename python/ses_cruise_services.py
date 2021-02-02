@@ -1120,6 +1120,8 @@ class ServiceCallbacks (ncs.application.Service):
                     self.log.info ("            Configure CE-PE Protocol: ", ce_pe_rp, " neighbor: ", neighbor.neighbor_ip, " AS: ", neighbor.ce_as_no)
                     l3_tv.add ('CE_PE_AS', neighbor.ce_as_no)
                     l3_tv.add ('CE_PE_NEI', neighbor.neighbor_ip)
+                    l3_tv.add ('NEI_DESCR', neighbor.neighbor_description)
+
                     l3_tv.add ('CE_AS_MD5', neighbor.ce_as_md5)
                     self.log.info ("                AS: ", neighbor.ce_as_md5)
                     l3_tv.add ('CE_KEEPALIVE', neighbor.ce_keepalive)
@@ -1179,6 +1181,7 @@ class ServiceCallbacks (ncs.application.Service):
             else:
                 l3_tv.add ('CE_PE_AS', "")
                 l3_tv.add ('CE_PE_NEI', "")
+                l3_tv.add ('NEI_DESCR', "")
                 l3_tv.add ('CE_AS_MD5', "")
                 l3_tv.add ('CE_HOLD', "")
                 l3_tv.add ('CE_KEEPALIVE', "")

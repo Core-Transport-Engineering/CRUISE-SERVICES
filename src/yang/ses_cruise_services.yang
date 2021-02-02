@@ -266,6 +266,9 @@ module ses_cruise_services {
                 leaf ce-as-no {
                   type string;
                 }
+                leaf neighbor-description {
+                  type string;
+                }
                 leaf ce-as-md5 {
                   type string;
                 }
@@ -757,7 +760,7 @@ module ses_cruise_services {
         }
 
         leaf rewrite {
-          when "((../if-type != 'None')  and (../end-type != 'port')) and ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags'))";
+          when "((../if-type != 'None')  and (../end-type != 'port')) and ((../encapsulation = 'dot1q') or (../encapsulation = 'dot1q-2tags')) and (/ncs:devices/ncs:device[ncs:name=current()/../../access-pe]/ncs:device-type/ncs:cli/ncs:ned-id='ios-id:cisco-ios') ";
           type enumeration {
             enum pop-1;
             enum pop-2;
