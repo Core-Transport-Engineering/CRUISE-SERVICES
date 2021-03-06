@@ -625,15 +625,17 @@ module ses_cruise_services {
 
 
       list pe-interfaces {
-	      key "id_int";
+	    key "id_int";
         unique "id_int";
         min-elements 1;
         when "../access-pe != 'None'";
+        ordered-by user;
+
 
         leaf id_int {
           tailf:info "Just a number used as index";
-          type uint8 {
-            range "1..24";
+          type uint64 {
+            range "1..10000";
           }
         }
 
@@ -1090,6 +1092,85 @@ module ses_cruise_services {
              default false;
           }
         }
+
+        container service-activation-testing {
+          leaf service-activation-testing {
+            tailf:info "True if SAT is activated to that interfaces";
+            type enumeration {
+              enum true;
+              enum false;
+            }
+             default false;
+          }
+
+          leaf service-activation-testing-duration {
+          	when "(../service-activation-testing = 'true') ";
+            tailf:info "Service activation time in seconds";
+            type uint32;
+            default 1200;
+          }
+
+          leaf service-activation-testing-bandwidth {
+            when "(../service-activation-testing = 'true') ";
+            tailf:info "Service activation bandwidth in bandwidth";
+            type uint32;
+          }
+
+          leaf service-activation-testing-mtu {
+            when "(../service-activation-testing = 'true') ";
+            tailf:info "Service activation frame size";
+            type uint32;
+            default 1518;
+          }
+
+          leaf sat-sla-source {
+            tailf:info "SAT SLA Source device";
+            type string;
+            config false;
+            tailf:cdb-oper {
+              tailf:persistent true;
+            }
+          }
+
+          leaf sat-sla-id {
+            tailf:info "SAT SLA ID allocated for interface";
+            type string;
+            config false;
+            tailf:cdb-oper {
+              tailf:persistent true;
+            }
+          }
+
+          tailf:action start-service-activation-testing {
+             tailf:actionpoint Cruise_L3VPN_start-service-activation-testing-action;
+             output {
+               leaf result {
+                 type string;
+               }
+             }
+           }
+
+           tailf:action stop-service-activation-testing {
+              tailf:actionpoint Cruise_L3VPN_stop-service-activation-testing-action;
+              output {
+                leaf result {
+                  type string;
+                }
+              }
+            }
+
+            tailf:action show-service-activation-testing {
+               tailf:actionpoint Cruise_L3VPN_show-service-activation-testing-action;
+               output {
+                 leaf result {
+                   type string;
+                 }
+               }
+             }
+
+
+        }
+
       }
 
       container ce-pe-prot {

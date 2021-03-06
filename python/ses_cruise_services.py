@@ -207,7 +207,6 @@ class ServiceCallbacks (ncs.application.Service):
         def mep_allocation (service, tctx, root, device, interface_id):
             pool_name_mep = 'MEP_POOL_CRUISE'
             mep_id = None
-            # unique_mep_allocation = str (service) + '_' + str (service.name) + '_' + device + '_'  + str (interface_id)
             unique_mep_allocation = str (service) + '_' + str (service.name) + '_'  + str (interface_id)
             id_allocator.id_request (service, service_path, 'sspa-bot', pool_name_mep, unique_mep_allocation, True)
             mep_id = id_allocator.id_read (tctx.username, root, pool_name_mep, unique_mep_allocation)
@@ -895,6 +894,101 @@ class ServiceCallbacks (ncs.application.Service):
                     elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
                         sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
 
+        def calc_sa_mac_addr(service, service_instance_id):
+            self.log.info (" Calculating Unique MAC address for Ethernet SLA Configuration for instance ID: ", service_instance_id)
+            sid_len = len (str (service_instance_id))
+            mac_last_tuple = str (service_instance_id)
+            if (sid_len < 4):
+                append_len = 4 - sid_len
+                mac_last_tuple = ("0" * append_len) + str (service_instance_id)
+            sa_mac_addr = "0001.0001." + mac_last_tuple
+            return sa_mac_addr
+
+        def configure_service_activation_testing(point, pe, pe_interface):
+            sat_tv = ncs.template.Variables ()
+            sla_tmpl = ncs.template.Template (service)
+            device_type_yang = root.devices.device[pe].device_type.cli.ned_id
+
+            sat_tv.add ('PE', pe)
+            sat_tv.add ('SAT_DURATION', pe_interface.service_activation_testing.service_activation_testing_duration)
+            sat_tv.add ('SAT_PACKET_SIZE', pe_interface.service_activation_testing.service_activation_testing_mtu)
+            sat_bandwidth = pe_interface.service_activation_testing.service_activation_testing_bandwidth * 1000
+            sat_tv.add ('SAT_BANDWIDTH', sat_bandwidth)
+
+
+            if device_type_yang == "ios-id:cisco-ios":
+                if pe_interface.if_num_ge is not None:
+                    serv_if_num = pe_interface.if_num_ge
+                    serv_if_size = "GigabitEthernet"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+                if pe_interface.if_num_tenge is not None:
+                    serv_if_num = pe_interface.if_num_tenge
+                    serv_if_size = "TenGigabitEthernet"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+                if pe_interface.if_num_po is not None:
+                    serv_if_num = pe_interface.if_num_po
+                    serv_if_size = "Port-channel"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+            elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
+                if pe_interface.if_num_ge_xr is not None:
+                    serv_if_num = pe_interface.if_num_ge_xr
+                    serv_if_size = "GigabitEthernet"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+                if pe_interface.if_num_tenge_xr is not None:
+                    serv_if_num = pe_interface.if_num_tenge_xr
+                    serv_if_size = "TenGigE"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+                if pe_interface.if_num_po_xr is not None:
+                    serv_if_num = pe_interface.if_num_po_xr
+                    serv_if_size = "Bundle-Ether"
+                    sat_tv.add ('IF_SIZE', serv_if_size)
+                    sat_tv.add ('IF_NUM', serv_if_num)
+
+            sat_tv.add ('IF_NUM', serv_if_num)
+            sat_tv.add ('IF_SIZE', serv_if_size)
+            sat_tv.add ('SERV_INST', pe_interface.se_id)
+
+            destination_mac_address = calc_sa_mac_addr (service.name, pe_interface.se_id)
+            sat_tv.add ('SA_MAC_ADDR', destination_mac_address)
+
+            pe_ipsla_pool = pe + '_IPSLA_POOL'
+            unique_allocation = str (service) + '_' + service.name + "_" + str (pe) + "_" + str (pe_interface.id_int) + "_PE_CPE_SAT"
+            id_allocator.id_request (service, service_path, 'sspa-bot', pe_ipsla_pool, unique_allocation, False)
+            sla_id_sat = id_allocator.id_read (tctx.username, root, pe_ipsla_pool, unique_allocation)
+
+            if sla_id_sat is None:
+                self.log.info ("                            Allocation SLA ID SAT not ready")
+                sat_tv.add ('SLA_ID_SAT', '')
+                return
+            else:
+                self.log.info ("                            Configure allocated SLA ID SAT: ",  sla_id_sat)
+                sat_tv.add ('SLA_ID_SAT', sla_id_sat)
+                with ncs.maapi.single_write_trans ('admin', 'system', db=ncs.OPERATIONAL) as t:
+                    path = '/services/CRUISE-SERVICES/{L3VPN %s}/endpoint{%s}/pe-interfaces{%s}/service-activation-testing/sat-sla-id' % (
+                        service.name, point.id, pe_interface.id_int)
+                    t.set_elem (sla_id_sat, path)
+                    t.apply ()
+                    t.finish_trans ()
+
+                with ncs.maapi.single_write_trans ('admin', 'system', db=ncs.OPERATIONAL) as t:
+                    path = '/services/CRUISE-SERVICES/{L3VPN %s}/endpoint{%s}/pe-interfaces{%s}/service-activation-testing/sat-sla-source' % (
+                        service.name, point.id, pe_interface.id_int)
+                    t.set_elem (pe, path)
+                    t.apply ()
+                    t.finish_trans ()
+
+                self.log.info ("                            Configure allocated SLA ID SAT: ", sla_id_sat, " interface: ", serv_if_num, " SE: ",  pe_interface.se_id, " bandwidth: ", sat_bandwidth, " packet-size: ", pe_interface.service_activation_testing.service_activation_testing_mtu)
+
+                if device_type_yang == "ios-id:cisco-ios":
+                    sla_tmpl.apply ('cruise-xe-sat-template', sat_tv)
+                elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
+                    sla_tmpl.apply ('cruise-xr-sat-template', sat_tv)
+
         def configure_cpe(pe, pe_interface, cpe_device):
             cpe_device_type = device_helper.get_device_details (root, cpe_device)
 
@@ -1548,7 +1642,21 @@ class ServiceCallbacks (ncs.application.Service):
                         # Configure CPE
                         configure_cpe(pe,   pe_interface, cpe_device)
 
+
                 # End Configure CFM and SLA
+
+                    if pe_interface.service_activation_testing.service_activation_testing == "true":
+                        self.log.info ('                        Configure PE interfaces for service activation testing ', pe, ' interface: ', interface_temp)
+                        pe_ipsla_pool = pe + '_IPSLA_POOL'
+                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.start = ip_sla_pool_start
+                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.end = ip_sla_pool_end
+                        configure_service_activation_testing(point, pe, pe_interface)
+
+
+
+                # Configure service actiovation testing
+
+
              # End Configure Interfaces PE
 
         if service.service_type == "L3VPN":
@@ -1680,6 +1788,66 @@ class Cruise_Services_Sync_all_devices (Action):
                 self.log.info ('Sync-from PE device: ', device_for_sync)
                 output = root.devices.device[device_for_sync].sync_from ()
 
+class Cruise_L3VPN_stop_sat (Action):
+    @Action.action
+    def cb_action(self, uinfo, name, kp, service, output):
+        _ncs.dp.action_set_timeout (uinfo, 1800)
+
+        with ncs.maapi.Maapi () as m:
+            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+                with m.start_write_trans () as t:
+                    root = ncs.maagic.get_root (t)
+                    configured_sla_source = str(kp) + "/sat-sla-source"
+                    configured_sla_sat_id = str(kp) + "/sat-sla-id"
+                    sla_id = t.get_elem(configured_sla_sat_id)
+                    sla_source = t.get_elem(configured_sla_source)
+                    self.log.info ('Action Command: ', name , " ID: ", sla_id, " on ", sla_source)
+                    device = root.ncs__devices.device[sla_source]
+                    del device.config.ios__ip.sla.schedule[sla_id]
+                    t.apply ()
+
+class Cruise_L3VPN_start_sat (Action):
+    @Action.action
+    def cb_action(self, uinfo, name, kp, service, output):
+        _ncs.dp.action_set_timeout (uinfo, 1800)
+
+        with ncs.maapi.Maapi () as m:
+            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+                with m.start_write_trans () as t:
+                    root = ncs.maagic.get_root (t)
+                    configured_sla_source = str(kp) + "/sat-sla-source"
+                    configured_sla_sat_id = str(kp) + "/sat-sla-id"
+                    sla_id = t.get_elem(configured_sla_sat_id)
+                    sla_source = t.get_elem(configured_sla_source)
+                    self.log.info ('Action Command: ', name , " ID: ", sla_id, " on ", sla_source)
+                    device = root.ncs__devices.device[sla_source]
+                    device.config.ios__ip.sla.schedule.create(sla_id)
+                    sat_sla_config = device.config.ios__ip.sla.schedule[sla_id]
+                    sat_sla_config.start_time.now.create ()
+                    t.apply ()
+
+class Cruise_L3VPN_show_sat (Action):
+    @Action.action
+    def cb_action(self, uinfo, name, kp, service, output):
+        _ncs.dp.action_set_timeout (uinfo, 1800)
+
+        with ncs.maapi.Maapi () as m:
+            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+                with m.start_write_trans () as t:
+                    root = ncs.maagic.get_root (t)
+                    configured_sla_source = str(kp) + "/sat-sla-source"
+                    configured_sla_sat_id = str(kp) + "/sat-sla-id"
+                    sla_id = t.get_elem(configured_sla_sat_id)
+                    sla_source = t.get_elem(configured_sla_source)
+                    self.log.info ('Action Command: ', name , " ID: ", sla_id, " on ", sla_source)
+                    tgen_source_exec_cmd = root.devices.device[sla_source].live_status.ios_stats__exec.any
+                    cmd_input = tgen_source_exec_cmd.get_input ()
+                    command = "show ip sla statistics " + str(sla_id) + " details | noprompts"
+                    cmd_input.args = [command]
+                    cmd_output = tgen_source_exec_cmd (cmd_input)
+        output.result = cmd_output.result
+
+
 # ---------------------------------------------
 # COMPONENT THREAD THAT WILL BE STARTED BY NCS.
 # ---------------------------------------------
@@ -1688,6 +1856,9 @@ class ses_cruise_services (ncs.application.Application):
         self.log.info ('SES CRUISE SERVICES RUNNING')
         self.register_service ('ses_cruise_services-servicepoint', ServiceCallbacks)
         self.register_action ('Cruise_L3VPN_DevicesSyncFrom-action', Cruise_L3VPN_DevicesSyncFrom)
+        self.register_action ('Cruise_L3VPN_start-service-activation-testing-action', Cruise_L3VPN_start_sat)
+        self.register_action ('Cruise_L3VPN_stop-service-activation-testing-action', Cruise_L3VPN_stop_sat)
+        self.register_action ('Cruise_L3VPN_show-service-activation-testing-action', Cruise_L3VPN_show_sat)
         self.register_action ('CRUISE-SERVICES-SYNC-ALL-action', Cruise_Services_Sync_all_devices)
 
         self.log.info ('SES CRUISE SERVICES START')

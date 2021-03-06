@@ -1,0 +1,52 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+    <devices xmlns="http://tail-f.com/ns/ncs">
+        <device>
+            <name>{$PE}</name>
+            <config tags="merge">
+                <ip xmlns="urn:ios" when="{($SLA_ID_SAT != '') and ($SERV_INST != 'None')}">
+                    <sla>
+                        <ip-sla-list>
+                            <id>{$SLA_ID_SAT}</id>
+                            <service-performance>
+                                <type>ethernet</type>
+                                <dest-mac-addr>{$SA_MAC_ADDR}</dest-mac-addr>
+                                <interface when="{$IF_SIZE = 'Port-channel'}">
+                                    <Port-channel>{$IF_NUM}</Port-channel>
+                                </interface>
+                                <service>
+                                    <instance>{$SERV_INST}</instance>
+                                </service>
+                            </service-performance>
+                            <frequency>
+                                <iteration>
+                                    <number>2</number>
+                                    <delay>1</delay>
+                                </iteration>
+                            </frequency>
+                            <duration>
+                                <time>{$SAT_DURATION}</time>
+                            </duration>
+                            <measurement-type>
+                                <direction>external</direction>
+                                <throughput/>
+                            </measurement-type>
+                            <profile>
+                                <packet>
+                                    <packet-size>{$SAT_PACKET_SIZE}</packet-size>
+                                </packet>
+                                <traffic>
+                                    <direction>external</direction>
+                                    <rate-step>
+                                        <kbps>
+                                            <step>{$SAT_BANDWIDTH}</step>
+                                        </kbps>
+                                    </rate-step>
+                                </traffic>
+                            </profile>
+                        </ip-sla-list>
+                    </sla>
+                </ip>
+            </config>
+        </device>
+    </devices>
+</config-template>
