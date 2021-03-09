@@ -895,7 +895,7 @@ class ServiceCallbacks (ncs.application.Service):
                         sla_tmpl.apply ('cruise-xr-sla-template', sla_tv)
 
         def calc_sa_mac_addr(service, service_instance_id):
-            self.log.info (" Calculating Unique MAC address for Ethernet SLA Configuration for instance ID: ", service_instance_id)
+            self.log.info ("            Calculating Unique MAC address for Ethernet SLA Configuration for instance ID: ", service_instance_id)
             sid_len = len (str (service_instance_id))
             mac_last_tuple = str (service_instance_id)
             if (sid_len < 4):
@@ -906,7 +906,7 @@ class ServiceCallbacks (ncs.application.Service):
 
         def configure_service_activation_testing(point, pe, pe_interface):
             sat_tv = ncs.template.Variables ()
-            sla_tmpl = ncs.template.Template (service)
+            sat_tmpl = ncs.template.Template (service)
             device_type_yang = root.devices.device[pe].device_type.cli.ned_id
 
             sat_tv.add ('PE', pe)
@@ -985,9 +985,9 @@ class ServiceCallbacks (ncs.application.Service):
                 self.log.info ("                            Configure allocated SLA ID SAT: ", sla_id_sat, " interface: ", serv_if_num, " SE: ",  pe_interface.se_id, " bandwidth: ", sat_bandwidth, " packet-size: ", pe_interface.service_activation_testing.service_activation_testing_mtu)
 
                 if device_type_yang == "ios-id:cisco-ios":
-                    sla_tmpl.apply ('cruise-xe-sat-template', sat_tv)
+                    sat_tmpl.apply ('cruise-xe-sat-template', sat_tv)
                 elif device_type_yang == "cisco-ios-xr-id:cisco-ios-xr":
-                    sla_tmpl.apply ('cruise-xr-sat-template', sat_tv)
+                    sat_tmpl.apply ('cruise-xr-sat-template', sat_tv)
 
         def configure_cpe(pe, pe_interface, cpe_device):
             cpe_device_type = device_helper.get_device_details (root, cpe_device)
@@ -1645,16 +1645,15 @@ class ServiceCallbacks (ncs.application.Service):
 
                 # End Configure CFM and SLA
 
-                    if pe_interface.service_activation_testing.service_activation_testing == "true":
-                        self.log.info ('                        Configure PE interfaces for service activation testing ', pe, ' interface: ', interface_temp)
-                        pe_ipsla_pool = pe + '_IPSLA_POOL'
-                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.start = ip_sla_pool_start
-                        root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.end = ip_sla_pool_end
-                        configure_service_activation_testing(point, pe, pe_interface)
+                # Configure service activation testing
 
+                if pe_interface.service_activation_testing.service_activation_testing == "true":
+                    self.log.info ('                        Configure PE interfaces for service activation testing ', pe, ' interface: ', int_temp)
+                    pe_ipsla_pool = pe + '_IPSLA_POOL'
+                    root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.start = ip_sla_pool_start
+                    root.ralloc__resource_pools.id_pool.create (pe_ipsla_pool).range.end = ip_sla_pool_end
+                    configure_service_activation_testing(point, pe, pe_interface)
 
-
-                # Configure service actiovation testing
 
 
              # End Configure Interfaces PE
