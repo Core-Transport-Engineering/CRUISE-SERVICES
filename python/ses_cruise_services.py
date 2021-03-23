@@ -1405,7 +1405,7 @@ class ServiceCallbacks (ncs.application.Service):
                 peint_tv.add ('IF_C_VLAN_ID', "")
 
 
-                if serv_if_end_type == 'serv-inst' and (serv_if_encap == 'dot1q' or serv_if_encap == 'dot1q-2tags' or serv_if_encap == 'qinq'):
+                if serv_if_end_type == 'serv-inst':
                     service_path = "/services/CRUISE-SERVICES[service-type = 'L3VPN'][name = '{}']".format (service.name)
 
                     int = str(serv_if_size) + str(serv_if_num)
@@ -1793,7 +1793,7 @@ class Cruise_L3VPN_stop_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
@@ -1811,7 +1811,7 @@ class Cruise_L3VPN_start_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
@@ -1831,7 +1831,7 @@ class Cruise_L3VPN_show_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, uinfo.username, uinfo.clearpass):
+            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
