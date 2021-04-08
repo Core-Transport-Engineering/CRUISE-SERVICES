@@ -1793,7 +1793,7 @@ class Cruise_L3VPN_stop_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
+            with ncs.maapi.Session (m, 'admin', 'python'):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
@@ -1811,7 +1811,7 @@ class Cruise_L3VPN_start_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
+            with ncs.maapi.Session (m, 'admin', 'python'):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
@@ -1831,7 +1831,7 @@ class Cruise_L3VPN_show_sat (Action):
         _ncs.dp.action_set_timeout (uinfo, 1800)
 
         with ncs.maapi.Maapi () as m:
-            with ncs.maapi.Session (m, 'sspa-bot', uinfo.clearpass):
+            with ncs.maapi.Session (m, 'admin', 'python'):
                 with m.start_write_trans () as t:
                     root = ncs.maagic.get_root (t)
                     configured_sla_source = str(kp) + "/sat-sla-source"
